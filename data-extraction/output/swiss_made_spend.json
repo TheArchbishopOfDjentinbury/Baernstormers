@@ -1,0 +1,146 @@
+[
+  {
+    "category": "Swiss-made",
+    "month": "July",
+    "monthISO": "2024-07",
+    "amount": "CHF 647.34"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "July",
+    "monthISO": "2024-07",
+    "amount": "CHF 32.75"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "August",
+    "monthISO": "2024-08",
+    "amount": "CHF 494.49"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "August",
+    "monthISO": "2024-08",
+    "amount": "CHF 43.01"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "September",
+    "monthISO": "2024-09",
+    "amount": "CHF 160.02"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "September",
+    "monthISO": "2024-09",
+    "amount": "CHF 34.85"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "October",
+    "monthISO": "2024-10",
+    "amount": "CHF 361.99"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "October",
+    "monthISO": "2024-10",
+    "amount": "CHF 18.10"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "November",
+    "monthISO": "2024-11",
+    "amount": "CHF 602.65"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "November",
+    "monthISO": "2024-11",
+    "amount": "CHF 20.05"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "December",
+    "monthISO": "2024-12",
+    "amount": "CHF 393.98"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "December",
+    "monthISO": "2024-12",
+    "amount": "CHF 17.30"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "January",
+    "monthISO": "2025-01",
+    "amount": "CHF 535.34"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "January",
+    "monthISO": "2025-01",
+    "amount": "CHF 17.40"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "February",
+    "monthISO": "2025-02",
+    "amount": "CHF 385.80"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "February",
+    "monthISO": "2025-02",
+    "amount": "CHF 24.40"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "March",
+    "monthISO": "2025-03",
+    "amount": "CHF 493.97"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "March",
+    "monthISO": "2025-03",
+    "amount": "CHF 17.95"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "April",
+    "monthISO": "2025-04",
+    "amount": "CHF 615.90"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "April",
+    "monthISO": "2025-04",
+    "amount": "CHF 14.00"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "May",
+    "monthISO": "2025-05",
+    "amount": "CHF 489.39"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "May",
+    "monthISO": "2025-05",
+    "amount": "CHF 30.20"
+  },
+  {
+    "category": "Swiss-made",
+    "month": "June",
+    "monthISO": "2025-06",
+    "amount": "CHF 477.05"
+  },
+  {
+    "category": "not Swiss-made",
+    "month": "June",
+    "monthISO": "2025-06",
+    "amount": "CHF 29.85"
+  }
+]

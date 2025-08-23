@@ -1,0 +1,38 @@
+[
+  {
+    "category": "coffee",
+    "month": "November",
+    "monthISO": "2024-11",
+    "amount": "CHF 10.95"
+  },
+  {
+    "category": "coffee",
+    "month": "January",
+    "monthISO": "2025-01",
+    "amount": "CHF 20.16"
+  },
+  {
+    "category": "coffee",
+    "month": "March",
+    "monthISO": "2025-03",
+    "amount": "CHF 12.55"
+  },
+  {
+    "category": "coffee",
+    "month": "April",
+    "monthISO": "2025-04",
+    "amount": "CHF 9.20"
+  },
+  {
+    "category": "coffee",
+    "month": "May",
+    "monthISO": "2025-05",
+    "amount": "CHF 14.72"
+  },
+  {
+    "category": "coffee",
+    "month": "June",
+    "monthISO": "2025-06",
+    "amount": "CHF 9.20"
+  }
+]

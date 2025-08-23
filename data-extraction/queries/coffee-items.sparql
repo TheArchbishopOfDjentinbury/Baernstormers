@@ -1,0 +1,34 @@
+PREFIX sc:   <https://static.rwpz.net/spendcast/schema#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?receipt ?date ?productName ?description ?categoryLabel ?lineSubtotal ?quantity
+WHERE {
+  ?receipt rdf:type sc:Receipt ;
+           sc:receiptDate ?date ;
+           sc:hasLineItem ?lineItem .
+
+  ?lineItem sc:hasProduct   ?product ;
+            sc:lineSubtotal ?lineSubtotal ;
+            sc:quantity     ?quantity .
+
+  ?product  sc:name     ?productName ;
+            sc:category ?category .
+
+  ?category rdfs:label ?categoryLabel .
+
+  OPTIONAL { ?product sc:description ?description }
+
+  FILTER (
+    CONTAINS(LCASE(?productName), "kaffee")     ||
+    CONTAINS(LCASE(?productName), "coffee")     ||
+    CONTAINS(LCASE(?productName), "espresso")   ||
+    CONTAINS(LCASE(?productName), "cappuccino") ||
+    CONTAINS(LCASE(?productName), "latte")      ||
+    CONTAINS(LCASE(COALESCE(?description, "")), "kaffee") ||
+    CONTAINS(LCASE(COALESCE(?description, "")), "coffee") ||
+    CONTAINS(LCASE(?categoryLabel), "kaffee")   ||
+    CONTAINS(LCASE(?categoryLabel), "coffee")
+  )
+}
+ORDER BY ?date

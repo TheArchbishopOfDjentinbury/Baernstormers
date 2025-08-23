@@ -1,0 +1,21 @@
+PREFIX sc:   <https://static.rwpz.net/spendcast/schema#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?receipt ?date ?lineItem ?product ?productName ?description ?lineSubtotal
+WHERE {
+  ?receipt rdf:type sc:Receipt ;
+           sc:receiptDate ?date ;
+           sc:hasLineItem ?lineItem .
+
+  ?lineItem sc:hasProduct   ?product ;
+            sc:lineSubtotal ?lineSubtotal .
+
+  # Product name is the main title of the product line
+  ?product  sc:name ?productName .
+
+  # If your data stores a per-line or per-product description, try both:
+  OPTIONAL { ?lineItem sc:description ?description }
+  OPTIONAL { ?product sc:description ?description }
+}
+ORDER BY ?date
