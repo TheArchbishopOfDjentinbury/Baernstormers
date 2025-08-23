@@ -9,6 +9,7 @@ from typing import AsyncGenerator, Optional
 import openai
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+from langchain_core.messages import HumanMessage
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
 from mcp import ClientSession
@@ -61,15 +62,15 @@ async def call_agent(message: str) -> str:
                 agent = create_react_agent("openai:gpt-4o", tools)
 
                 # IMPORTANT: Keep the session alive during agent execution
-                agent_response = await agent.ainvoke({"messages": message})
+                agent_response = await agent.ainvoke(
+                    {"messages": [HumanMessage(content=message)]}
+                )
 
                 # Extract just the final message content for cleaner response
-                if hasattr(agent_response, "get") and "messages" in agent_response:
-                    messages = agent_response["messages"]
-                    if messages:
-                        final_message = messages[-1]
-                        if hasattr(final_message, "content"):
-                            return final_message.content
+                if messages := agent_response.get("messages"):
+                    final_message = messages[-1]
+                    if hasattr(final_message, "content"):
+                        return final_message.content
 
                 return str(agent_response)
 
@@ -141,7 +142,8 @@ async def stream_agent_response(message: str) -> AsyncGenerator[str, None]:
 
                 # Use astream instead of ainvoke for streaming
                 async for token, _ in agent.astream(
-                    {"messages": message}, stream_mode="messages"
+                    {"messages": [HumanMessage(content=message)]},
+                    stream_mode="messages",
                 ):
                     if hasattr(token, "content") and token.content:
                         # Format as Server-Sent Events
