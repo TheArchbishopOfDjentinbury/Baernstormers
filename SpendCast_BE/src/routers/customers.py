@@ -1,4 +1,5 @@
 """Customer management API router using GraphDB SPARQL queries."""
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
@@ -8,16 +9,14 @@ from datetime import datetime
 
 from src.config import settings
 
-router = APIRouter(
-    prefix="/api/v1/customers",
-    tags=["customers"]
-)
+router = APIRouter(prefix="/api/v1/customers", tags=["customers"])
 
 logger = logging.getLogger(__name__)
 
 
 class CustomerBasic(BaseModel):
     """Basic customer information model."""
+
     name: str = Field(..., description="Full name of the customer")
     email: Optional[str] = Field(None, description="Email address")
     phone: Optional[str] = Field(None, description="Phone number")
@@ -25,6 +24,7 @@ class CustomerBasic(BaseModel):
 
 class CustomerDetails(BaseModel):
     """Detailed customer information model."""
+
     id: str = Field(..., description="Customer ID")
     name: str = Field(..., description="Full name")
     email: Optional[str] = Field(None, description="Email address")
@@ -35,6 +35,7 @@ class CustomerDetails(BaseModel):
 
 class CustomerAccount(BaseModel):
     """Customer account summary model."""
+
     account_id: str = Field(..., description="Account ID")
     account_type: str = Field(..., description="Type of account")
     balance: float = Field(..., description="Account balance")
@@ -44,6 +45,7 @@ class CustomerAccount(BaseModel):
 
 class CustomerSummary(BaseModel):
     """Complete customer summary model."""
+
     customer: CustomerDetails
     accounts: List[CustomerAccount]
     total_balance: float
@@ -59,21 +61,25 @@ async def execute_sparql_query(query: str) -> Dict[str, Any]:
         }
         data = {"query": query}
         auth = httpx.BasicAuth(settings.graphdb_user, settings.graphdb_password)
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 settings.graphdb_url,
                 headers=headers,
                 data=data,
                 auth=auth,
-                timeout=30.0
+                timeout=30.0,
             )
             response.raise_for_status()
             return response.json()
-            
+
     except httpx.HTTPStatusError as e:
-        logger.error(f"GraphDB HTTP error: {e.response.status_code} - {e.response.text}")
-        raise HTTPException(status_code=500, detail=f"GraphDB error: {e.response.status_code}")
+        logger.error(
+            f"GraphDB HTTP error: {e.response.status_code} - {e.response.text}"
+        )
+        raise HTTPException(
+            status_code=500, detail=f"GraphDB error: {e.response.status_code}"
+        )
     except httpx.RequestError as e:
         logger.error(f"GraphDB connection error: {e}")
         raise HTTPException(status_code=500, detail="Failed to connect to GraphDB")
@@ -98,18 +104,18 @@ async def list_customers(limit: int = Query(10, ge=1, le=100)):
     ORDER BY ?name
     LIMIT {limit}
     """
-    
+
     result = await execute_sparql_query(query)
     customers = []
-    
+
     for binding in result.get("results", {}).get("bindings", []):
         customer = CustomerBasic(
             name=binding["name"]["value"],
             email=binding.get("email", {}).get("value"),
-            phone=binding.get("phone", {}).get("value")
+            phone=binding.get("phone", {}).get("value"),
         )
         customers.append(customer)
-    
+
     return customers
 
 
@@ -131,15 +137,15 @@ async def get_customer_details(customer_name: str):
         OPTIONAL {{ ?person exs:citizenship ?citizenship }}
     }}
     """
-    
+
     customer_result = await execute_sparql_query(customer_query)
     customer_bindings = customer_result.get("results", {}).get("bindings", [])
-    
+
     if not customer_bindings:
         raise HTTPException(status_code=404, detail="Customer not found")
-    
+
     customer_data = customer_bindings[0]
-    
+
     # Get customer accounts
     accounts_query = f"""
     PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
@@ -156,24 +162,24 @@ async def get_customer_details(customer_name: str):
     }}
     ORDER BY ?account_type
     """
-    
+
     accounts_result = await execute_sparql_query(accounts_query)
     accounts = []
     total_balance = 0.0
-    
+
     for binding in accounts_result.get("results", {}).get("bindings", []):
         balance = float(binding.get("balance", {}).get("value", 0))
         total_balance += balance
-        
+
         account = CustomerAccount(
             account_id=binding["account"]["value"].split("/")[-1],
             account_type=binding["account_type"]["value"].split("#")[-1],
             balance=balance,
             currency=binding.get("currency", {}).get("value", "CHF").split("/")[-1],
-            iban=binding.get("iban", {}).get("value")
+            iban=binding.get("iban", {}).get("value"),
         )
         accounts.append(account)
-    
+
     # Build customer details
     customer = CustomerDetails(
         id=customer_data["person"]["value"].split("/")[-1],
@@ -181,14 +187,14 @@ async def get_customer_details(customer_name: str):
         email=customer_data.get("email", {}).get("value"),
         phone=customer_data.get("phone", {}).get("value"),
         birth_date=customer_data.get("birth_date", {}).get("value"),
-        citizenship=customer_data.get("citizenship", {}).get("value")
+        citizenship=customer_data.get("citizenship", {}).get("value"),
     )
-    
+
     return CustomerSummary(
         customer=customer,
         accounts=accounts,
         total_balance=total_balance,
-        account_count=len(accounts)
+        account_count=len(accounts),
     )
 
 
@@ -196,7 +202,7 @@ async def get_customer_details(customer_name: str):
 async def get_customer_transactions(
     customer_name: str,
     limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0)
+    offset: int = Query(0, ge=0),
 ):
     """Get recent transactions for a customer."""
     query = f"""
@@ -229,33 +235,32 @@ async def get_customer_transactions(
     LIMIT {limit}
     OFFSET {offset}
     """
-    
+
     result = await execute_sparql_query(query)
     transactions = []
-    
+
     for binding in result.get("results", {}).get("bindings", []):
         transaction = {
             "transaction_id": binding["transaction"]["value"].split("/")[-1],
             "amount": float(binding["amount"]["value"]),
             "date": binding["date"]["value"],
             "status": binding.get("status", {}).get("value", "unknown"),
-            "merchant": binding.get("merchant_name", {}).get("value", "unknown")
+            "merchant": binding.get("merchant_name", {}).get("value", "unknown"),
         }
         transactions.append(transaction)
-    
+
     return {
         "customer_name": customer_name,
         "transactions": transactions,
         "count": len(transactions),
         "offset": offset,
-        "limit": limit
+        "limit": limit,
     }
 
 
 @router.get("/{customer_name}/spending-analysis")
 async def get_customer_spending_analysis(
-    customer_name: str,
-    year: int = Query(2025, ge=2020, le=2030)
+    customer_name: str, year: int = Query(2025, ge=2020, le=2030)
 ):
     """Get spending analysis by category for a customer."""
     query = f"""
@@ -288,35 +293,34 @@ async def get_customer_spending_analysis(
     ORDER BY DESC(?total_spent)
     LIMIT 20
     """
-    
+
     result = await execute_sparql_query(query)
     categories = []
     total_amount = 0.0
-    
+
     for binding in result.get("results", {}).get("bindings", []):
         amount = float(binding["total_spent"]["value"])
         total_amount += amount
-        
+
         category = {
             "category": binding["category_label"]["value"],
             "total_spent": amount,
-            "transaction_count": int(binding["transaction_count"]["value"])
+            "transaction_count": int(binding["transaction_count"]["value"]),
         }
         categories.append(category)
-    
+
     return {
         "customer_name": customer_name,
         "year": year,
         "categories": categories,
         "total_spending": total_amount,
-        "category_count": len(categories)
+        "category_count": len(categories),
     }
 
 
 @router.get("/{customer_name}/monthly-spending")
 async def get_customer_monthly_spending(
-    customer_name: str,
-    year: int = Query(2025, ge=2020, le=2030)
+    customer_name: str, year: int = Query(2025, ge=2020, le=2030)
 ):
     """Get monthly spending breakdown for a customer."""
     query = f"""
@@ -342,30 +346,30 @@ async def get_customer_monthly_spending(
     GROUP BY ?month
     ORDER BY ?month
     """
-    
+
     result = await execute_sparql_query(query)
     monthly_data = []
     total_year_spending = 0.0
-    
+
     for binding in result.get("results", {}).get("bindings", []):
         amount = float(binding["total_spent"]["value"])
         total_year_spending += amount
-        
+
         # Safely get month value, skip if not present
         if "month" not in binding:
             continue
-            
+
         month_data = {
             "month": binding["month"]["value"],
             "total_spent": amount,
-            "transaction_count": int(binding["transaction_count"]["value"])
+            "transaction_count": int(binding["transaction_count"]["value"]),
         }
         monthly_data.append(month_data)
-    
+
     return {
         "customer_name": customer_name,
         "year": year,
         "monthly_spending": monthly_data,
         "total_year_spending": total_year_spending,
-        "average_monthly_spending": total_year_spending / max(len(monthly_data), 1)
+        "average_monthly_spending": total_year_spending / max(len(monthly_data), 1),
     }

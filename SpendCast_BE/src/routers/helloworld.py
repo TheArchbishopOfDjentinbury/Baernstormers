@@ -1,25 +1,25 @@
 """Hello World API router."""
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import logging
 
 from src.crud.helloworld import get_hello_world_data
 
-router = APIRouter(
-    prefix="/api/v1",
-    tags=["hello"]
-)
+router = APIRouter(prefix="/api/v1", tags=["hello"])
 
 logger = logging.getLogger(__name__)
 
 
 class HelloWorldRequest(BaseModel):
     """Hello world request model."""
+
     text: str
 
 
 class HelloWorldResponse(BaseModel):
     """Hello world response model."""
+
     message: str
     service: str
     version: str
@@ -35,7 +35,7 @@ async def hello_world_get():
     try:
         # Get data from CRUD
         response_data = await get_hello_world_data()
-        
+
         return HelloWorldResponse(**response_data)
     except Exception as e:
         logger.error(f"Error in hello world GET: {e}")
@@ -50,10 +50,10 @@ async def hello_world_post(request: HelloWorldRequest):
     try:
         # Get data from CRUD
         response_data = await get_hello_world_data()
-        
+
         # Add echo of the input text
         response_data["echo"] = f"You said: {request.text}"
-        
+
         return HelloWorldResponse(**response_data)
     except Exception as e:
         logger.error(f"Error in hello world POST: {e}")

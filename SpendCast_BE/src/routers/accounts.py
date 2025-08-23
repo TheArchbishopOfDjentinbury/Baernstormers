@@ -1,4 +1,5 @@
 """Account management API router using GraphDB SPARQL queries."""
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
@@ -7,16 +8,14 @@ import httpx
 
 from src.config import settings
 
-router = APIRouter(
-    prefix="/api/v1/accounts",
-    tags=["accounts"]
-)
+router = APIRouter(prefix="/api/v1/accounts", tags=["accounts"])
 
 logger = logging.getLogger(__name__)
 
 
 class AccountBasic(BaseModel):
     """Basic account information model."""
+
     account_id: str = Field(..., description="Account number (primary identifier)")
     account_number: str = Field(..., description="Account number")
     account_type: str = Field(..., description="Type of account")
@@ -27,6 +26,7 @@ class AccountBasic(BaseModel):
 
 class AccountDetails(BaseModel):
     """Detailed account information model."""
+
     account_id: str = Field(..., description="Account number (primary identifier)")
     account_number: str = Field(..., description="Account number")
     account_type: str = Field(..., description="Type of account")
@@ -43,6 +43,7 @@ class AccountDetails(BaseModel):
 
 class AccountTransaction(BaseModel):
     """Account transaction model."""
+
     transaction_id: str = Field(..., description="Transaction ID")
     amount: float = Field(..., description="Transaction amount")
     date: str = Field(..., description="Transaction date")
@@ -53,6 +54,7 @@ class AccountTransaction(BaseModel):
 
 class AccountSummary(BaseModel):
     """Account summary with transactions."""
+
     account: AccountDetails
     recent_transactions: List[AccountTransaction]
     transaction_count: int
@@ -69,21 +71,25 @@ async def execute_sparql_query(query: str) -> Dict[str, Any]:
         }
         data = {"query": query}
         auth = httpx.BasicAuth(settings.graphdb_user, settings.graphdb_password)
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 settings.graphdb_url,
                 headers=headers,
                 data=data,
                 auth=auth,
-                timeout=30.0
+                timeout=30.0,
             )
             response.raise_for_status()
             return response.json()
-            
+
     except httpx.HTTPStatusError as e:
-        logger.error(f"GraphDB HTTP error: {e.response.status_code} - {e.response.text}")
-        raise HTTPException(status_code=500, detail=f"GraphDB error: {e.response.status_code}")
+        logger.error(
+            f"GraphDB HTTP error: {e.response.status_code} - {e.response.text}"
+        )
+        raise HTTPException(
+            status_code=500, detail=f"GraphDB error: {e.response.status_code}"
+        )
     except httpx.RequestError as e:
         logger.error(f"GraphDB connection error: {e}")
         raise HTTPException(status_code=500, detail="Failed to connect to GraphDB")
@@ -110,29 +116,29 @@ async def get_account_types():
     }
     ORDER BY ?account_type
     """
-    
+
     result = await execute_sparql_query(query)
     account_types = []
-    
+
     for binding in result.get("results", {}).get("bindings", []):
         # Extract account type from schema URI
         account_type_uri = binding["account_type"]["value"]
         account_type = account_type_uri.split("#")[-1]
         account_types.append(account_type)
-    
+
     return account_types
 
 
 @router.get("/", response_model=List[AccountBasic])
 async def list_accounts(
     account_type: Optional[str] = Query(None, description="Filter by account type"),
-    limit: int = Query(20, ge=1, le=100)
+    limit: int = Query(20, ge=1, le=100),
 ):
     """Get list of all accounts."""
     type_filter = ""
     if account_type:
         type_filter = f"FILTER(?account_type = exs:{account_type})"
-    
+
     query = f"""
     PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
     PREFIX ex: <https://static.rwpz.net/spendcast/>
@@ -150,47 +156,47 @@ async def list_accounts(
     ORDER BY ?account_type ?account
     LIMIT {limit}
     """
-    
+
     result = await execute_sparql_query(query)
     accounts = []
-    
+
     for binding in result.get("results", {}).get("bindings", []):
         # Use account number as the professional account_id
         account_number = binding["account_number"]["value"]
-        
-        # Extract account type from schema URI  
+
+        # Extract account type from schema URI
         account_type_uri = binding["account_type"]["value"]
         account_type = account_type_uri.split("#")[-1]
-        
+
         # Extract currency from URI
         currency_uri = binding["currency"]["value"]
         currency = currency_uri.split("/")[-1]
-        
+
         # Get display name (optional)
         display_name = binding.get("display_name", {}).get("value")
-        
+
         # Get balance (optional - may not exist for credit cards)
         balance = 0.0
         if "balance" in binding and binding["balance"].get("value"):
             balance = float(binding["balance"]["value"])
-        
+
         account = AccountBasic(
             account_id=account_number,  # Professional: use account number as ID
             account_number=account_number,
             account_type=account_type,
             balance=balance,
             currency=currency,
-            display_name=display_name
+            display_name=display_name,
         )
         accounts.append(account)
-    
+
     return accounts
 
 
 @router.get("/{account_id}", response_model=AccountSummary)
 async def get_account_details(account_id: str):
     """Get detailed information about a specific account.
-    
+
     Args:
         account_id: Account number (e.g., '1234567890')
     """
@@ -230,15 +236,15 @@ async def get_account_details(account_id: str):
         FILTER(?account_type != exs:Account)
     }}
     """
-    
+
     account_result = await execute_sparql_query(account_query)
     account_bindings = account_result.get("results", {}).get("bindings", [])
-    
+
     if not account_bindings:
         raise HTTPException(status_code=404, detail="Account not found")
-    
+
     account_data = account_bindings[0]
-    
+
     # Get recent transactions for this account
     transactions_query = f"""
     PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
@@ -270,25 +276,25 @@ async def get_account_details(account_id: str):
     ORDER BY DESC(?date)
     LIMIT 10
     """
-    
+
     transactions_result = await execute_sparql_query(transactions_query)
     transactions = []
-    
+
     for binding in transactions_result.get("results", {}).get("bindings", []):
         # Extract transaction ID from URI
         transaction_uri = binding["transaction"]["value"]
         transaction_id = transaction_uri.split("/")[-1]
-        
+
         transaction = AccountTransaction(
             transaction_id=transaction_id,
             amount=float(binding["amount"]["value"]),
             date=binding["date"]["value"],
             status=binding.get("status", {}).get("value", "unknown"),
             transaction_type=binding.get("transaction_type", {}).get("value"),
-            merchant=binding.get("merchant_name", {}).get("value")
+            merchant=binding.get("merchant_name", {}).get("value"),
         )
         transactions.append(transaction)
-    
+
     # Calculate monthly spending and income
     monthly_stats_query = f"""
     PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
@@ -312,38 +318,38 @@ async def get_account_details(account_id: str):
     }}
     GROUP BY ?transaction_type
     """
-    
+
     monthly_result = await execute_sparql_query(monthly_stats_query)
     monthly_spending = 0.0
     monthly_income = 0.0
-    
+
     for binding in monthly_result.get("results", {}).get("bindings", []):
         amount = float(binding["total"]["value"])
         trans_type = binding["transaction_type"]["value"]
-        
+
         if trans_type == "expense":
             monthly_spending += amount
         elif trans_type == "income":
             monthly_income += amount
-    
+
     # Build account details with professional account identification
     account_number = account_data["account_number"]["value"]
-    
+
     account_type_uri = account_data["account_type"]["value"]
     account_type = account_type_uri.split("#")[-1]
-    
+
     currency_uri = account_data["currency"]["value"]
     currency = currency_uri.split("/")[-1]
-    
+
     # Extract internal ID for reference
     account_uri = account_data["account"]["value"]
     internal_id = account_uri.split("/")[-1]
-    
+
     # Get balance (optional - may not exist for credit cards)
     balance = 0.0
     if account_data.get("balance") and account_data["balance"].get("value"):
         balance = float(account_data["balance"]["value"])
-    
+
     account_details = AccountDetails(
         account_id=account_number,  # Professional: use account number as ID
         account_number=account_number,
@@ -353,49 +359,55 @@ async def get_account_details(account_id: str):
         display_name=account_data.get("display_name", {}).get("value"),
         iban=account_data.get("iban", {}).get("value"),
         account_purpose=account_data.get("account_purpose", {}).get("value"),
-        overdraft_limit=float(account_data["overdraft_limit"]["value"]) if account_data.get("overdraft_limit") else None,
+        overdraft_limit=float(account_data["overdraft_limit"]["value"])
+        if account_data.get("overdraft_limit")
+        else None,
         holder_name=account_data.get("holder_name", {}).get("value"),
         provider_name=account_data.get("provider_name", {}).get("value"),
-        internal_id=internal_id
+        internal_id=internal_id,
     )
-    
+
     return AccountSummary(
         account=account_details,
         recent_transactions=transactions,
         transaction_count=len(transactions),
         monthly_spending=monthly_spending,
-        monthly_income=monthly_income
+        monthly_income=monthly_income,
     )
 
 
 @router.get("/{account_id}/transactions")
 async def get_account_transactions(
     account_id: str,
-    transaction_type: Optional[str] = Query(None, description="Filter by transaction type"),
+    transaction_type: Optional[str] = Query(
+        None, description="Filter by transaction type"
+    ),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0)
+    offset: int = Query(0, ge=0),
 ):
     """Get transactions for a specific account with filters.
-    
+
     Args:
         account_id: Account number (e.g., '1234567890')
     """
     filters = []
-    
+
     if transaction_type:
         filters.append(f'FILTER(?transaction_type = "{transaction_type}")')
-    
+
     if start_date and end_date:
-        filters.append(f'FILTER(?date >= "{start_date}"^^xsd:date && ?date <= "{end_date}"^^xsd:date)')
+        filters.append(
+            f'FILTER(?date >= "{start_date}"^^xsd:date && ?date <= "{end_date}"^^xsd:date)'
+        )
     elif start_date:
         filters.append(f'FILTER(?date >= "{start_date}"^^xsd:date)')
     elif end_date:
         filters.append(f'FILTER(?date <= "{end_date}"^^xsd:date)')
-    
+
     filter_clause = " ".join(filters)
-    
+
     query = f"""
     PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
     PREFIX ex: <https://static.rwpz.net/spendcast/>
@@ -430,25 +442,25 @@ async def get_account_transactions(
     LIMIT {limit}
     OFFSET {offset}
     """
-    
+
     result = await execute_sparql_query(query)
     transactions = []
-    
+
     for binding in result.get("results", {}).get("bindings", []):
         # Extract transaction ID from URI
         transaction_uri = binding["transaction"]["value"]
         transaction_id = transaction_uri.split("/")[-1]
-        
+
         transaction = {
             "transaction_id": transaction_id,
             "amount": float(binding["amount"]["value"]),
             "date": binding["date"]["value"],
             "status": binding.get("status", {}).get("value", "unknown"),
             "transaction_type": binding.get("transaction_type", {}).get("value"),
-            "merchant": binding.get("merchant_name", {}).get("value")
+            "merchant": binding.get("merchant_name", {}).get("value"),
         }
         transactions.append(transaction)
-    
+
     return {
         "account_id": account_id,
         "transactions": transactions,
@@ -458,8 +470,8 @@ async def get_account_transactions(
         "filters": {
             "transaction_type": transaction_type,
             "start_date": start_date,
-            "end_date": end_date
-        }
+            "end_date": end_date,
+        },
     }
 
 
@@ -468,23 +480,23 @@ async def get_account_balance_history(
     account_id: str,
     period: str = Query("month", description="Period: day, week, month"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
-    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)")
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
 ):
     """Get balance history for an account (simulated based on transactions).
-    
+
     Args:
         account_id: Account number (e.g., '1234567890')
         period: Aggregation period (day, week, month)
         start_date: Start date for history (default: based on period)
         end_date: End date for history (default: today)
     """
-    
+
     # Calculate date range based on period if not provided
     from datetime import datetime, timedelta
-    
+
     if not end_date:
         end_date = datetime.now().strftime("%Y-%m-%d")
-    
+
     if not start_date:
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")
         if period == "day":
@@ -494,7 +506,7 @@ async def get_account_balance_history(
         else:  # month
             start_dt = end_dt - timedelta(days=365)  # Last year
         start_date = start_dt.strftime("%Y-%m-%d")
-    
+
     query = f"""
     PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
     PREFIX ex: <https://static.rwpz.net/spendcast/>
@@ -517,9 +529,9 @@ async def get_account_balance_history(
     }}
     ORDER BY ?date
     """
-    
+
     result = await execute_sparql_query(query)
-    
+
     # Get initial balance
     balance_query = f"""
     PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
@@ -530,35 +542,39 @@ async def get_account_balance_history(
         OPTIONAL {{ ?account exs:hasInitialBalance ?balance }}
     }}
     """
-    
+
     balance_result = await execute_sparql_query(balance_query)
     initial_balance = 0.0
-    
+
     if balance_result.get("results", {}).get("bindings"):
         bindings = balance_result["results"]["bindings"]
-        if bindings and bindings[0].get("balance") and bindings[0]["balance"].get("value"):
+        if (
+            bindings
+            and bindings[0].get("balance")
+            and bindings[0]["balance"].get("value")
+        ):
             initial_balance = float(bindings[0]["balance"]["value"])
-    
+
     # Calculate running balance with period aggregation
     from collections import defaultdict
     from datetime import datetime, timedelta
-    
+
     # Group transactions by period
     period_groups = defaultdict(list)
     current_balance = initial_balance
-    
+
     for binding in result.get("results", {}).get("bindings", []):
         amount = float(binding["amount"]["value"])
         trans_type = binding["transaction_type"]["value"]
         date_str = binding["date"]["value"]
         date_obj = datetime.strptime(date_str.split("T")[0], "%Y-%m-%d")
-        
+
         # Adjust balance based on transaction type
         if trans_type == "expense":
             current_balance -= amount
         elif trans_type == "income":
             current_balance += amount
-        
+
         # Group by period
         if period == "day":
             period_key = date_obj.strftime("%Y-%m-%d")
@@ -568,47 +584,56 @@ async def get_account_balance_history(
             period_key = monday.strftime("%Y-%m-%d")
         else:  # month
             period_key = date_obj.strftime("%Y-%m")
-        
-        period_groups[period_key].append({
-            "date": date_str,
-            "amount": amount,
-            "transaction_type": trans_type,
-            "running_balance": round(current_balance, 2)
-        })
-    
+
+        period_groups[period_key].append(
+            {
+                "date": date_str,
+                "amount": amount,
+                "transaction_type": trans_type,
+                "running_balance": round(current_balance, 2),
+            }
+        )
+
     # Create aggregated balance history
     balance_history = []
     for period_key in sorted(period_groups.keys()):
         transactions = period_groups[period_key]
-        
+
         # Use the last balance of the period
-        period_balance = transactions[-1]["running_balance"] if transactions else initial_balance
-        
+        period_balance = (
+            transactions[-1]["running_balance"] if transactions else initial_balance
+        )
+
         # Calculate period totals
-        period_income = sum(t["amount"] for t in transactions if t["transaction_type"] == "income")
-        period_expenses = sum(t["amount"] for t in transactions if t["transaction_type"] == "expense")
-        
-        balance_history.append({
-            "period": period_key,
-            "balance": period_balance,
-            "income": round(period_income, 2),
-            "expenses": round(period_expenses, 2),
-            "net_change": round(period_income - period_expenses, 2),
-            "transaction_count": len(transactions)
-        })
-    
+        period_income = sum(
+            t["amount"] for t in transactions if t["transaction_type"] == "income"
+        )
+        period_expenses = sum(
+            t["amount"] for t in transactions if t["transaction_type"] == "expense"
+        )
+
+        balance_history.append(
+            {
+                "period": period_key,
+                "balance": period_balance,
+                "income": round(period_income, 2),
+                "expenses": round(period_expenses, 2),
+                "net_change": round(period_income - period_expenses, 2),
+                "transaction_count": len(transactions),
+            }
+        )
+
     return {
         "account_id": account_id,
         "initial_balance": initial_balance,
         "current_balance": round(current_balance, 2),
         "balance_history": balance_history,
         "period": period,
-        "date_range": {
-            "start_date": start_date,
-            "end_date": end_date
-        },
+        "date_range": {"start_date": start_date, "end_date": end_date},
         "summary": {
             "total_periods": len(balance_history),
-            "total_transactions": sum(len(transactions) for transactions in period_groups.values())
-        }
+            "total_transactions": sum(
+                len(transactions) for transactions in period_groups.values()
+            ),
+        },
     }

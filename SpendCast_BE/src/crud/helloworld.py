@@ -1,4 +1,5 @@
 """Hello World CRUD operations."""
+
 import logging
 from typing import Dict, Any
 
@@ -15,8 +16,8 @@ async def get_hello_world_data() -> Dict[str, Any]:
         "message": "Hello from Spendcast Backend!",
         "service": "spendcast-backend",
         "version": "0.1.0",
-        "status": "running"
+        "status": "running",
     }
-    
+
     logger.info(f"Hello world data retrieved: {data}")
     return data
