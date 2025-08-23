@@ -140,19 +140,15 @@ async def stream_agent_response(message: str) -> AsyncGenerator[str, None]:
                 agent = create_react_agent("openai:gpt-4o", tools)
 
                 # Use astream instead of ainvoke for streaming
-                async for chunk in agent.astream({"messages": message}):
-                    # Extract content from the chunk based on LangGraph's structure
-                    if "messages" in chunk:
-                        messages = chunk["messages"]
-                        if messages:
-                            for msg in messages:
-                                if hasattr(msg, "content") and msg.content:
-                                    # Format as Server-Sent Events
-                                    yield f"data: {json.dumps({'content': msg.content, 'type': 'message'})}\n\n"
-                    elif "__end__" in chunk:
-                        # Signal end of stream
-                        yield f"data: {json.dumps({'type': 'end'})}\n\n"
-                        break
+                async for token, _ in agent.astream(
+                    {"messages": message}, stream_mode="messages"
+                ):
+                    if hasattr(token, "content") and token.content:
+                        # Format as Server-Sent Events
+                        yield f"data: {json.dumps({'content': token.content, 'type': 'message'})}\n\n"
+
+        # Signal end of stream
+        yield f"data: {json.dumps({'type': 'end'})}\n\n"
 
     except Exception as e:
         logger.error(f"Error in streaming agent: {e}")

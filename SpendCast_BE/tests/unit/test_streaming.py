@@ -82,12 +82,11 @@ class TestStreamingEndpoint:
         """Test successful streaming response."""
         # Mock agent streaming response
         mock_chunks = [
-            MockChunk(messages=[MockMessage("Hello")]),
-            MockChunk(messages=[MockMessage(" world")]),
-            MockChunk(end=True),
+            (MockMessage("Hello"), {}),
+            (MockMessage(" world"), {}),
         ]
 
-        async def mock_astream(input_data):
+        async def mock_astream(input_data, stream_mode):
             for chunk in mock_chunks:
                 yield chunk
 
@@ -140,11 +139,10 @@ class TestStreamingEndpoint:
     ):
         """Test streaming response with empty messages."""
         mock_chunks = [
-            MockChunk(messages=[]),  # Empty messages
-            MockChunk(end=True),
+            (MockMessage(""), {}),  # Empty message
         ]
 
-        async def mock_astream(input_data):
+        async def mock_astream(input_data, stream_mode):
             for chunk in mock_chunks:
                 yield chunk
 
@@ -167,11 +165,10 @@ class TestStreamingEndpoint:
             content = None
 
         mock_chunks = [
-            MockChunk(messages=[MockMessageNoContent()]),
-            MockChunk(end=True),
+            (MockMessageNoContent(), {}),
         ]
 
-        async def mock_astream(input_data):
+        async def mock_astream(input_data, stream_mode):
             for chunk in mock_chunks:
                 yield chunk
 

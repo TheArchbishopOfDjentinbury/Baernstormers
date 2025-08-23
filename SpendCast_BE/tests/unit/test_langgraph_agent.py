@@ -1,6 +1,7 @@
 """Unit tests for the LangGraph agent router."""
 
 import base64
+import json
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
@@ -53,3 +54,32 @@ def test_chat_with_agent_without_audio():
         assert response_json["response"] == "This is a test response."
         assert response_json["success"] is True
         assert response_json["audio_content"] is None
+
+
+def test_stream_chat_with_agent():
+    """Test the /chat/stream endpoint."""
+
+    async def mock_stream_generator():
+        yield f"data: {json.dumps({'content': 'Hello', 'type': 'message'})}\n\n"
+        yield f"data: {json.dumps({'content': ' world', 'type': 'message'})}\n\n"
+        yield f"data: {json.dumps({'type': 'end'})}\n\n"
+
+    with patch(
+        "src.routers.langgraph_agent.stream_agent_response",
+        return_value=mock_stream_generator(),
+    ) as mock_stream_agent_response:
+        response = client.post(
+            "/api/v1/agent/chat/stream",
+            json={"message": "Hello"},
+        )
+
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "text/plain; charset=utf-8"
+
+        # Check the streamed content
+        expected_content = (
+            f"data: {json.dumps({'content': 'Hello', 'type': 'message'})}\n\n"
+            f"data: {json.dumps({'content': ' world', 'type': 'message'})}\n\n"
+            f"data: {json.dumps({'type': 'end'})}\n\n"
+        )
+        assert response.text == expected_content
