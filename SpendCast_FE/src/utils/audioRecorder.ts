@@ -1,11 +1,11 @@
 import RecordRTC from 'recordrtc';
 
-export class MP3AudioRecorder {
+export class WebMAudioRecorder {
   private recorder: RecordRTC | null = null;
   private stream: MediaStream | null = null;
 
   /**
-   * Start recording audio in MP3 format
+   * Start recording audio in WebM format
    */
   async startRecording(): Promise<void> {
     try {
@@ -19,23 +19,22 @@ export class MP3AudioRecorder {
 
       this.recorder = new RecordRTC(this.stream, {
         type: 'audio',
-        mimeType: 'audio/mp3',
-        recorderType: RecordRTC.StereoAudioRecorder,
+        mimeType: 'audio/webm',
+        recorderType: RecordRTC.MediaStreamRecorder,
         numberOfAudioChannels: 1, // Mono for smaller file size
         audioBitsPerSecond: 128000, // 128 kbps
-        sampleRate: 44100,
         timeSlice: 1000, // Get data every second
       });
 
       this.recorder.startRecording();
     } catch (error) {
-      console.error('Error starting MP3 recording:', error);
+      console.error('Error starting WebM recording:', error);
       throw new Error('Failed to start recording');
     }
   }
 
   /**
-   * Stop recording and get MP3 blob
+   * Stop recording and get WebM blob
    */
   async stopRecording(): Promise<Blob> {
     return new Promise((resolve, reject) => {
@@ -45,9 +44,13 @@ export class MP3AudioRecorder {
       }
 
       this.recorder.stopRecording(() => {
-        const blob = this.recorder!.getBlob();
-        this.cleanup();
-        resolve(blob);
+        if (this.recorder) {
+          const blob = this.recorder.getBlob();
+          this.cleanup();
+          resolve(blob);
+        } else {
+          reject(new Error('Recorder became null during stop'));
+        }
       });
     });
   }
@@ -89,7 +92,7 @@ export class MP3AudioRecorder {
     dataURL: string;
     blob: Blob;
   }> {
-    const recorder = new MP3AudioRecorder();
+    const recorder = new WebMAudioRecorder();
 
     await recorder.startRecording();
 
@@ -121,31 +124,36 @@ export class MP3AudioRecorder {
    * Get recording duration
    */
   getDuration(): number {
-    return this.recorder?.getState() === 'recording'
-      ? Date.now() - (this.recorder as any).getStartTime()
-      : 0;
+    if (this.recorder?.getState() === 'recording') {
+      // RecordRTC doesn't expose getStartTime in types, but it exists at runtime
+      const recordRTCInstance = this.recorder as RecordRTC & {
+        getStartTime(): number;
+      };
+      return Date.now() - recordRTCInstance.getStartTime();
+    }
+    return 0;
   }
 }
 
 // Helper functions for easy use
 export const audioUtils = {
   /**
-   * Create MP3 recorder instance
+   * Create WebM recorder instance
    */
-  createRecorder: () => new MP3AudioRecorder(),
+  createRecorder: () => new WebMAudioRecorder(),
 
   /**
    * Convert any blob to Base64
    */
-  toBase64: MP3AudioRecorder.blobToBase64,
+  toBase64: WebMAudioRecorder.blobToBase64,
 
   /**
    * Convert any blob to data URL
    */
-  toDataURL: MP3AudioRecorder.blobToDataURL,
+  toDataURL: WebMAudioRecorder.blobToDataURL,
 
   /**
-   * Check browser support for MP3 recording
+   * Check browser support for WebM recording
    */
   checkSupport: () => {
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
@@ -154,7 +162,7 @@ export const audioUtils = {
   /**
    * Convert Base64 string to Blob
    */
-  base64ToBlob: (base64: string, mimeType = 'audio/mp3'): Blob => {
+  base64ToBlob: (base64: string, mimeType = 'audio/webm'): Blob => {
     const byteCharacters = atob(base64);
     const byteNumbers = new Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
@@ -167,7 +175,7 @@ export const audioUtils = {
   /**
    * Convert Base64 string to audio URL for playback
    */
-  base64ToAudioURL: (base64: string, mimeType = 'audio/mp3'): string => {
+  base64ToAudioURL: (base64: string, mimeType = 'audio/webm'): string => {
     const blob = audioUtils.base64ToBlob(base64, mimeType);
     return URL.createObjectURL(blob);
   },

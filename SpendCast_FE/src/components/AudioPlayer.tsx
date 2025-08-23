@@ -1,149 +1,260 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { audioUtils } from '@/utils/audioRecorder';
+import { useEffect, useRef, useState } from 'react';
+import WaveSurfer from 'wavesurfer.js';
+import { Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 
 interface AudioPlayerProps {
-  base64Audio: string;
-  className?: string;
+  audioUrl?: string;
+  base64Audio?: string;
+  onPlayStateChange?: (isPlaying: boolean) => void;
+  minimal?: boolean; // For chat usage
 }
 
-export const AudioPlayer: React.FC<AudioPlayerProps> = ({
+const AudioPlayer = ({
+  audioUrl,
   base64Audio,
-  className = '',
-}) => {
+  onPlayStateChange,
+  minimal = false,
+}: AudioPlayerProps) => {
+  const waveformRef = useRef<HTMLDivElement>(null);
+  const wavesurfer = useRef<WaveSurfer | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [audioUrl, setAudioUrl] = useState<string>('');
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(0.5);
 
-  // Convert Base64 to audio URL on mount
+  // Convert base64 to blob
+  const base64ToBlob = (
+    base64: string,
+    mimeType: string = 'audio/mp3'
+  ): Blob => {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+  };
+
   useEffect(() => {
-    const url = audioUtils.base64ToAudioURL(base64Audio);
-    setAudioUrl(url);
+    if (!waveformRef.current) return;
 
-    // Cleanup URL when component unmounts
+    // Initialize WaveSurfer
+    wavesurfer.current = WaveSurfer.create({
+      container: waveformRef.current,
+      waveColor: minimal ? '#6b7280' : '#4ade80',
+      progressColor: minimal ? '#374151' : '#16a34a',
+      cursorColor: '#ffffff',
+      barWidth: minimal ? 2 : 3,
+      barRadius: minimal ? 2 : 3,
+      height: minimal ? 40 : 60,
+      normalize: true,
+      backend: 'WebAudio',
+      mediaControls: false,
+    });
+
+    // Load audio if provided
+    if (base64Audio) {
+      // Convert base64 to blob and load
+      const audioBlob = base64ToBlob(base64Audio);
+      wavesurfer.current.loadBlob(audioBlob);
+    } else if (audioUrl) {
+      wavesurfer.current.load(audioUrl);
+    } else {
+      // Create a demo waveform for visualization
+      wavesurfer.current.loadBlob(createDemoBlob());
+    }
+
+    // Event listeners
+    wavesurfer.current.on('play', () => {
+      setIsPlaying(true);
+      onPlayStateChange?.(true);
+    });
+
+    wavesurfer.current.on('pause', () => {
+      setIsPlaying(false);
+      onPlayStateChange?.(false);
+    });
+
+    wavesurfer.current.on('timeupdate', (time: number) => {
+      setCurrentTime(time);
+    });
+
+    wavesurfer.current.on('ready', () => {
+      setDuration(wavesurfer.current?.getDuration() || 0);
+    });
+
     return () => {
-      if (url) {
-        URL.revokeObjectURL(url);
+      if (wavesurfer.current) {
+        wavesurfer.current.destroy();
       }
     };
-  }, [base64Audio]);
+  }, [audioUrl, base64Audio, onPlayStateChange, minimal]);
 
-  // Setup audio event listeners
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  const createDemoBlob = () => {
+    // Create a simple audio buffer for demo purposes
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
+    const audioContext = new AudioContextClass();
+    const sampleRate = audioContext.sampleRate;
+    const duration = 30; // 30 seconds
+    const buffer = audioContext.createBuffer(
+      1,
+      sampleRate * duration,
+      sampleRate
+    );
+    const data = buffer.getChannelData(0);
 
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
+    // Generate a simple sine wave with some variation
+    for (let i = 0; i < data.length; i++) {
+      const time = i / sampleRate;
+      data[i] =
+        Math.sin(440 * 2 * Math.PI * time) * 0.1 * (1 + Math.sin(time * 0.5));
+    }
+
+    // Convert buffer to blob (this is a simplified approach)
+    const arrayBuffer = new ArrayBuffer(44 + data.length * 2);
+    const view = new DataView(arrayBuffer);
+
+    // WAV header
+    const writeString = (offset: number, string: string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
     };
 
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + data.length * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, data.length * 2, true);
 
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    };
+    let offset = 44;
+    for (let i = 0; i < data.length; i++) {
+      view.setInt16(offset, data[i] * 0x7fff, true);
+      offset += 2;
+    }
 
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('pause', handlePause);
-
-    return () => {
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('pause', handlePause);
-    };
-  }, [audioUrl]);
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
+  };
 
   const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
+    if (wavesurfer.current) {
+      wavesurfer.current.playPause();
     }
   };
 
-  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const audio = audioRef.current;
-    if (!audio || !duration) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    const newTime = percent * duration;
-
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
+  const skipBackward = () => {
+    if (wavesurfer.current) {
+      const currentTime = wavesurfer.current.getCurrentTime();
+      wavesurfer.current.seekTo(Math.max(0, (currentTime - 10) / duration));
+    }
   };
 
-  const formatTime = (time: number): string => {
-    if (isNaN(time)) return '0:00';
-
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  const skipForward = () => {
+    if (wavesurfer.current) {
+      const currentTime = wavesurfer.current.getCurrentTime();
+      wavesurfer.current.seekTo(Math.min(1, (currentTime + 10) / duration));
+    }
   };
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (wavesurfer.current) {
+      wavesurfer.current.setVolume(newVolume);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (minimal) {
+    return (
+      <div className="w-full bg-gray-50 rounded-lg p-2 border border-gray-200 mt-1">
+        {/* Compact waveform */}
+        <div ref={waveformRef} className="mb-2" />
+
+        {/* Minimal inline controls */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={togglePlayPause}
+            className="p-1.5 bg-brand-secondary hover:bg-brand-secondary/80 rounded-full text-white transition-colors flex-shrink-0"
+          >
+            {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+          </button>
+
+          {/* Time display - compact */}
+          <div className="text-gray-500 text-xs font-mono">
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border ${className}`}
-    >
-      {/* Hidden audio element */}
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+    <div className="w-full bg-gray-900/90 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
+      {/* Waveform */}
+      <div ref={waveformRef} className="mb-4" />
 
-      {/* Play/Pause Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={togglePlayPause}
-        className="h-8 w-8 p-0 hover:bg-gray-200"
-      >
-        {isPlaying ? (
-          <Pause className="h-4 w-4" />
-        ) : (
-          <Play className="h-4 w-4" />
-        )}
-      </Button>
+      {/* Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={skipBackward}
+            className="p-2 text-white hover:text-green-400 transition-colors"
+            title="Skip back 10s"
+          >
+            <SkipBack size={20} />
+          </button>
 
-      {/* Volume Icon */}
-      <Volume2 className="h-4 w-4 text-gray-500" />
+          <button
+            onClick={togglePlayPause}
+            className="p-3 bg-green-500 hover:bg-green-600 rounded-full text-white transition-colors"
+          >
+            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+          </button>
 
-      {/* Progress Bar */}
-      <div className="flex-1 space-y-1">
-        <div
-          className="h-2 bg-gray-200 rounded-full cursor-pointer relative"
-          onClick={handleSeek}
-        >
-          <div
-            className="h-full bg-blue-500 rounded-full transition-all duration-150"
-            style={{ width: `${progress}%` }}
-          />
-          <div
-            className="absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-blue-600 rounded-full shadow transition-all duration-150"
-            style={{ left: `${progress}%`, marginLeft: '-6px' }}
-          />
+          <button
+            onClick={skipForward}
+            className="p-2 text-white hover:text-green-400 transition-colors"
+            title="Skip forward 10s"
+          >
+            <SkipForward size={20} />
+          </button>
         </div>
 
-        {/* Time Display */}
-        <div className="flex justify-between text-xs text-gray-500">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+        {/* Time display */}
+        <div className="text-white text-sm">
+          {formatTime(currentTime)} / {formatTime(duration)}
+        </div>
+
+        {/* Volume control */}
+        <div className="flex items-center space-x-2">
+          <Volume2 size={20} className="text-white" />
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={volume}
+            onChange={handleVolumeChange}
+            className="w-20 accent-green-500"
+          />
         </div>
       </div>
     </div>
@@ -151,4 +262,3 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 };
 
 export default AudioPlayer;
-

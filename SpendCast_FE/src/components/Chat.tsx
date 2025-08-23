@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Send, Mic, MicOff } from 'lucide-react';
 import ChatLoader from '@/components/ChatLoader';
 import AudioPlayer from '@/components/AudioPlayer';
-import { MP3AudioRecorder, audioUtils } from '@/utils/audioRecorder';
+import { WebMAudioRecorder, audioUtils } from '@/utils/audioRecorder';
 import { useChatResponse, type ChatMessage } from '@/hooks/useChatResponse';
 
 interface Message {
@@ -24,7 +24,7 @@ const Chat: React.FC = () => {
   const [recordingError, setRecordingError] = useState<string | null>(null);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [responseAsAudio, setResponseAsAudio] = useState(true);
-  const mp3RecorderRef = useRef<MP3AudioRecorder | null>(null);
+  const mp3RecorderRef = useRef<WebMAudioRecorder | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Random GIF selection
@@ -77,14 +77,14 @@ const Chat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount only
   useEffect(() => {
     return () => {
-      if (mp3RecorderRef.current && isRecording) {
+      if (mp3RecorderRef.current) {
         mp3RecorderRef.current.stopRecording();
       }
     };
-  }, [isRecording]);
+  }, []);
 
   const addUserMessage = (text: string, type: 'text' | 'voice' = 'text') => {
     const newMessage: Message = {
@@ -129,7 +129,7 @@ const Chat: React.FC = () => {
       }
 
       // Create MP3 recorder
-      const recorder = new MP3AudioRecorder();
+      const recorder = new WebMAudioRecorder();
       mp3RecorderRef.current = recorder;
 
       // Start MP3 recording
@@ -288,7 +288,10 @@ const Chat: React.FC = () => {
                     {/* Audio Player for voice responses */}
                     {msg.audioContent && (
                       <div className="mt-2">
-                        <AudioPlayer base64Audio={msg.audioContent} />
+                        <AudioPlayer
+                          base64Audio={msg.audioContent}
+                          minimal={true}
+                        />
                       </div>
                     )}
                     <p className="text-xs opacity-70 mt-1">
