@@ -1,7 +1,85 @@
-@import 'tw-animate-css';
+@import 'tailwindcss';
 
-@custom-variant dark (&:is(.dark *));
+/* Design system CSS variables */
+:root {
+  /* Brand Colors */
+  --brand-primary: #ffcc00; /* Main yellow */
+  --brand-secondary: #004b5a; /* Dark teal */
+  --brand-tertiary: #eef6f6; /* Light mint */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+  /* System Colors (using brand palette) */
+  --background: 0 0% 100%;
+  --foreground: 194 100% 18%; /* Dark teal for text */
+  --card: 180 17% 95%; /* Light mint for cards */
+  --card-foreground: 194 100% 18%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 194 100% 18%;
+  --primary: 48 100% 50%; /* Brand yellow */
+  --primary-foreground: 194 100% 18%; /* Dark teal text on yellow */
+  --secondary: 180 17% 95%; /* Light mint */
+  --secondary-foreground: 194 100% 18%;
+  --muted: 180 17% 95%;
+  --muted-foreground: 194 50% 35%;
+  --accent: 48 100% 50%; /* Brand yellow for accents */
+  --accent-foreground: 194 100% 18%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 180 17% 85%;
+  --input: 180 17% 90%;
+  --ring: 48 100% 50%; /* Yellow focus ring */
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Dark theme with brand colors */
+  --background: 194 100% 10%; /* Very dark teal */
+  --foreground: 180 17% 95%; /* Light mint text */
+  --card: 194 100% 15%; /* Dark teal cards */
+  --card-foreground: 180 17% 95%;
+  --popover: 194 100% 12%;
+  --popover-foreground: 180 17% 95%;
+  --primary: 48 100% 50%; /* Keep yellow primary */
+  --primary-foreground: 194 100% 18%; /* Dark teal text on yellow */
+  --secondary: 194 100% 20%; /* Darker teal */
+  --secondary-foreground: 180 17% 95%;
+  --muted: 194 100% 15%;
+  --muted-foreground: 180 17% 70%;
+  --accent: 48 100% 50%; /* Yellow accent */
+  --accent-foreground: 194 100% 18%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 194 100% 25%;
+  --input: 194 100% 20%;
+  --ring: 48 100% 50%; /* Yellow focus ring */
+}
+
+/* Base styles */
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Mobile-specific utilities */
+.pb-safe-area-inset-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Brand color utility classes */
+.bg-brand-primary {
+  background-color: var(--brand-primary);
+}
+.bg-brand-secondary {
+  background-color: var(--brand-secondary);
+}
+.bg-brand-tertiary {
+  background-color: var(--brand-tertiary);
+}
+.text-brand-primary {
+  color: var(--brand-primary);
+}
+.text-brand-secondary {
+  color: var(--brand-secondary);
+}
+.border-brand-primary {
+  border-color: var(--brand-primary);
+}

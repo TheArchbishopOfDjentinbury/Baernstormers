@@ -1,17 +1,20 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: ['class'],
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    container: {
-      center: true,
-      padding: '2rem',
-      screens: {
-        '2xl': '1400px',
-      },
-    },
     extend: {
       colors: {
+        // Brand colors - direct hex values
+        brand: {
+          primary: '#FFCC00', // Main yellow
+          secondary: '#004B5A', // Dark teal
+          tertiary: '#EEF6F6', // Light mint
+          yellow: '#FFCC00',
+          teal: '#004B5A',
+          mint: '#EEF6F6',
+        },
+
+        // System colors using CSS variables
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -51,6 +54,12 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      backdropBlur: {
+        xs: '2px',
+      },
+      boxShadow: {
+        xs: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
@@ -67,5 +76,4 @@ export default {
       },
     },
   },
-  plugins: [],
 };
