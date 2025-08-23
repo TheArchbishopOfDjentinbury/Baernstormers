@@ -48,40 +48,10 @@ class ChatResponse(BaseModel):
     error: Optional[str] = None
 
 
-# Global variable to store initialized agent (optional optimization)
-_agent = None
-_tools = None
-
-
-async def initialize_agent():
-    """Initialize the agent and tools once"""
-    global _agent, _tools
-
-    if _agent is None:
-        try:
-            async with stdio_client(server_params) as (read, write):
-                async with ClientSession(read, write) as session:
-                    # Initialize the connection
-                    await session.initialize()
-                    # Get tools
-                    _tools = await load_mcp_tools(session)
-                    # Create the agent
-                    _agent = create_react_agent("openai:gpt-4o", _tools)
-                    logger.info("Agent initialized successfully")
-        except Exception as e:
-            logger.error(f"Failed to initialize agent: {e}")
-            raise e
-
-
 async def call_agent(message: str) -> str:
     """Call the agent with a message"""
     try:
-        # Option 1: Use global agent (if initialized)
-        if _agent and _tools:
-            response = await _agent.ainvoke({"messages": message})
-            return str(response)
-
-        # Option 2: Create new session each time (more reliable but slower)
+        # Create a fresh session for each request to avoid ClosedResourceError
         async with stdio_client(server_params) as (read, write):
             async with ClientSession(read, write) as session:
                 # Initialize the connection
@@ -90,7 +60,18 @@ async def call_agent(message: str) -> str:
                 tools = await load_mcp_tools(session)
                 # Create and run the agent
                 agent = create_react_agent("openai:gpt-4o", tools)
+
+                # IMPORTANT: Keep the session alive during agent execution
                 agent_response = await agent.ainvoke({"messages": message})
+
+                # Extract just the final message content for cleaner response
+                if hasattr(agent_response, "get") and "messages" in agent_response:
+                    messages = agent_response["messages"]
+                    if messages:
+                        final_message = messages[-1]
+                        if hasattr(final_message, "content"):
+                            return final_message.content
+
                 return str(agent_response)
 
     except Exception as e:
@@ -106,7 +87,7 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "agent_initialized": _agent is not None}
+    return {"status": "healthy"}
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -129,17 +110,6 @@ async def chat_with_agent(request: ChatRequest):
     except Exception as e:
         logger.error(f"Unexpected error in chat endpoint: {e}")
         return ChatResponse(response="", success=False, error=str(e))
-
-
-# Optional: Initialize agent on startup
-@app.on_event("startup")
-async def startup_event():
-    """Initialize agent when the server starts"""
-    try:
-        await initialize_agent()
-    except Exception as e:
-        logger.warning(f"Could not initialize agent on startup: {e}")
-        logger.info("Agent will be initialized on first request")
 
 
 if __name__ == "__main__":
