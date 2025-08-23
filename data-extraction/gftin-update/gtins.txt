@@ -1,0 +1,98 @@
+100103000000	https://migipedia.migros.ch/de/products/100103000000	07616500912519
+100110500000	https://migipedia.migros.ch/de/products/100110500000	07616500923393
+100121200000	https://migipedia.migros.ch/de/products/100121200000	07616500012127
+100188000000	https://migipedia.migros.ch/de/products/100188000000	07610400084826
+100188100000	https://migipedia.migros.ch/de/products/100188100000	07610400010023
+100188300000	https://migipedia.migros.ch/de/products/100188300000	07610400084833
+100203300000	https://migipedia.migros.ch/de/products/100203300000	07612100908235
+100203900000	https://migipedia.migros.ch/de/products/100203900000	07612100908303
+100204400000	https://migipedia.migros.ch/de/products/100204400000	07612100908341
+100226000000	https://migipedia.migros.ch/de/products/100226000000	07610400010030
+100226300000	https://migipedia.migros.ch/de/products/100226300000	07610400010061
+100232500000	https://migipedia.migros.ch/de/products/100232500000	07616500023253
+100952400000	https://migipedia.migros.ch/de/products/100952400000	07610005023596
+101000900000	https://migipedia.migros.ch/de/products/101000900000	08710800985309
+101006600000	https://migipedia.migros.ch/de/products/101006600000	05000357105248
+101011600000	https://migipedia.migros.ch/de/products/101011600000	08723400787174
+101019800000	https://migipedia.migros.ch/de/products/101019800000	04000512364320
+101020000000	https://migipedia.migros.ch/de/products/101020000000	04000512015246
+101027100000	https://migipedia.migros.ch/de/products/101027100000	07613312397633
+101027200000	https://migipedia.migros.ch/de/products/101027200000	07613312396865
+101027600000	https://migipedia.migros.ch/de/products/101027600000	07613312397657
+101028600000	https://migipedia.migros.ch/de/products/101028600000	07613312396926
+101028700000	https://migipedia.migros.ch/de/products/101028700000	07613312396933
+101031000000	https://migipedia.migros.ch/de/products/101031000000	08000500164976
+101031100000	https://migipedia.migros.ch/de/products/101031100000	08000500416693
+101040300000	https://migipedia.migros.ch/de/products/101040300000	04001686753040
+101053000000	https://migipedia.migros.ch/de/products/101053000000	07613312362846
+101058900000	https://migipedia.migros.ch/de/products/101058900000	07617027956819
+101061300000	https://migipedia.migros.ch/de/products/101061300000	07613269293996
+101067000000	https://migipedia.migros.ch/de/products/101067000000	07610167620114
+101067100000	https://migipedia.migros.ch/de/products/101067100000	07610167620213
+101067500000	https://migipedia.migros.ch/de/products/101067500000	07610167690117
+101067600000	https://migipedia.migros.ch/de/products/101067600000	07610167690018
+101119300000	https://migipedia.migros.ch/de/products/101119300000	08723400944447
+101134400000	https://migipedia.migros.ch/de/products/101134400000	00000080728351
+101136500000	https://migipedia.migros.ch/de/products/101136500000	07613312367995
+101138700000	https://migipedia.migros.ch/de/products/101138700000	00000096426050
+101148400000	https://migipedia.migros.ch/de/products/101148400000	08723400942450
+101148500000	https://migipedia.migros.ch/de/products/101148500000	08723400942481
+101148700000	https://migipedia.migros.ch/de/products/101148700000	08723400946410
+101148800000	https://migipedia.migros.ch/de/products/101148800000	08723400946380
+101153600000	https://migipedia.migros.ch/de/products/101153600000	07613312425510
+101155500000	https://migipedia.migros.ch/de/products/101155500000	07613312448366
+101311200000	https://migipedia.migros.ch/de/products/101311200000	07613269430582
+101313100000	https://migipedia.migros.ch/de/products/101313100000	07612100921555
+101339000000	https://migipedia.migros.ch/de/products/101339000000	07613039788646
+101340000000	https://migipedia.migros.ch/de/products/101340000000	07613287121974
+101341000000	https://migipedia.migros.ch/de/products/101341000000	00000040345512
+101342300000	https://migipedia.migros.ch/de/products/101342300000	05000159458337
+100103000000	https://migipedia.migros.ch/de/products/100103000000	07616500912519	https://static.rwpz.net/spendcast/gtin/7613269195429
+100110500000	https://migipedia.migros.ch/de/products/100110500000	07616500923393	https://static.rwpz.net/spendcast/gtin/7616500923393
+100121200000	https://migipedia.migros.ch/de/products/100121200000	07616500012127	https://static.rwpz.net/spendcast/gtin/7613312274804
+100188000000	https://migipedia.migros.ch/de/products/100188000000	07610400084826	https://static.rwpz.net/spendcast/gtin/7610400084826
+100188100000	https://migipedia.migros.ch/de/products/100188100000	07610400010023	https://static.rwpz.net/spendcast/gtin/7610400010023
+100188300000	https://migipedia.migros.ch/de/products/100188300000	07610400084833	https://static.rwpz.net/spendcast/gtin/7610400084833
+100203300000	https://migipedia.migros.ch/de/products/100203300000	07612100908235	https://static.rwpz.net/spendcast/gtin/7612100908235
+100203900000	https://migipedia.migros.ch/de/products/100203900000	07612100908303	https://static.rwpz.net/spendcast/gtin/7612100908303
+100204400000	https://migipedia.migros.ch/de/products/100204400000	07612100908341	https://static.rwpz.net/spendcast/gtin/7612100908341
+100226000000	https://migipedia.migros.ch/de/products/100226000000	07610400010030	https://static.rwpz.net/spendcast/gtin/7610400010030
+100226300000	https://migipedia.migros.ch/de/products/100226300000	07610400010061	https://static.rwpz.net/spendcast/gtin/7610400010061
+100232500000	https://migipedia.migros.ch/de/products/100232500000	07616500023253	https://static.rwpz.net/spendcast/gtin/7616500023253
+100952400000	https://migipedia.migros.ch/de/products/100952400000	07610005023596	https://static.rwpz.net/spendcast/gtin/7610005023596
+101000900000	https://migipedia.migros.ch/de/products/101000900000	08710800985309	https://static.rwpz.net/spendcast/gtin/8710800985309
+101006600000	https://migipedia.migros.ch/de/products/101006600000	05000357105248	https://static.rwpz.net/spendcast/gtin/5000357105248
+101011600000	https://migipedia.migros.ch/de/products/101011600000	08723400787174	https://static.rwpz.net/spendcast/gtin/8723400787174
+101019800000	https://migipedia.migros.ch/de/products/101019800000	04000512364320	https://static.rwpz.net/spendcast/gtin/4000512364320
+101020000000	https://migipedia.migros.ch/de/products/101020000000	04000512015246	https://static.rwpz.net/spendcast/gtin/4000512015246
+101027100000	https://migipedia.migros.ch/de/products/101027100000	07613312397633	https://static.rwpz.net/spendcast/gtin/7610700015049
+101027200000	https://migipedia.migros.ch/de/products/101027200000	07613312396865	https://static.rwpz.net/spendcast/gtin/7610700623299
+101027600000	https://migipedia.migros.ch/de/products/101027600000	07613312397657	https://static.rwpz.net/spendcast/gtin/7610700002827
+101028600000	https://migipedia.migros.ch/de/products/101028600000	07613312396926	https://static.rwpz.net/spendcast/gtin/7610700002452
+101028700000	https://migipedia.migros.ch/de/products/101028700000	07613312396933	https://static.rwpz.net/spendcast/gtin/7610700901151
+101031000000	https://migipedia.migros.ch/de/products/101031000000	08000500164976	https://static.rwpz.net/spendcast/gtin/8000500164976
+101031100000	https://migipedia.migros.ch/de/products/101031100000	08000500416693	https://static.rwpz.net/spendcast/gtin/8000500166697
+101040300000	https://migipedia.migros.ch/de/products/101040300000	04001686753040	https://static.rwpz.net/spendcast/gtin/4001686003015
+101053000000	https://migipedia.migros.ch/de/products/101053000000	07613312362846	https://static.rwpz.net/spendcast/gtin/7613312362846
+101058900000	https://migipedia.migros.ch/de/products/101058900000	07617027956819	https://static.rwpz.net/spendcast/gtin/7613312294109
+101061300000	https://migipedia.migros.ch/de/products/101061300000	07613269293996	https://static.rwpz.net/spendcast/gtin/7613269293996
+101067000000	https://migipedia.migros.ch/de/products/101067000000	07610167620114	https://static.rwpz.net/spendcast/gtin/7610167620114
+101067100000	https://migipedia.migros.ch/de/products/101067100000	07610167620213	https://static.rwpz.net/spendcast/gtin/7610167620213
+101067500000	https://migipedia.migros.ch/de/products/101067500000	07610167690117	https://static.rwpz.net/spendcast/gtin/7610167690117
+101067600000	https://migipedia.migros.ch/de/products/101067600000	07610167690018	https://static.rwpz.net/spendcast/gtin/7610167690018
+101119300000	https://migipedia.migros.ch/de/products/101119300000	08723400944447	https://static.rwpz.net/spendcast/gtin/8723400944447
+101134400000	https://migipedia.migros.ch/de/products/101134400000	00000080728351	https://static.rwpz.net/spendcast/gtin/80728351
+101136500000	https://migipedia.migros.ch/de/products/101136500000	07613312367995	https://static.rwpz.net/spendcast/gtin/7613312367995
+101138700000	https://migipedia.migros.ch/de/products/101138700000	00000096426050	https://static.rwpz.net/spendcast/gtin/80991922
+101148400000	https://migipedia.migros.ch/de/products/101148400000	08723400942450	https://static.rwpz.net/spendcast/gtin/8723400942450
+101148500000	https://migipedia.migros.ch/de/products/101148500000	08723400942481	https://static.rwpz.net/spendcast/gtin/8723400942481
+101148700000	https://migipedia.migros.ch/de/products/101148700000	08723400946410	https://static.rwpz.net/spendcast/gtin/8723400946410
+101148800000	https://migipedia.migros.ch/de/products/101148800000	08723400946380	https://static.rwpz.net/spendcast/gtin/8723400946380
+101153600000	https://migipedia.migros.ch/de/products/101153600000	07613312425510	https://static.rwpz.net/spendcast/gtin/7610005027105
+101155500000	https://migipedia.migros.ch/de/products/101155500000	07613312448366	https://static.rwpz.net/spendcast/gtin/7613312448366
+101311200000	https://migipedia.migros.ch/de/products/101311200000	07613269430582	https://static.rwpz.net/spendcast/gtin/04104420144149
+101313100000	https://migipedia.migros.ch/de/products/101313100000	07612100921555	https://static.rwpz.net/spendcast/gtin/7612100921555
+101339000000	https://migipedia.migros.ch/de/products/101339000000	07613039788646	https://static.rwpz.net/spendcast/gtin/7613039788646
+101340000000	https://migipedia.migros.ch/de/products/101340000000	07613287121974	https://static.rwpz.net/spendcast/gtin/7613287121974
+101341000000	https://migipedia.migros.ch/de/products/101341000000	00000040345512	https://static.rwpz.net/spendcast/gtin/40345512
+101342300000	https://migipedia.migros.ch/de/products/101342300000	05000159458337	https://static.rwpz.net/spendcast/gtin/5000159317955

@@ -9,6 +9,7 @@ from typing import AsyncGenerator, Optional
 import openai
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+from langchain_core.messages import HumanMessage
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
 from mcp import ClientSession
@@ -61,15 +62,15 @@ async def call_agent(message: str) -> str:
                 agent = create_react_agent("openai:gpt-4o", tools)
 
                 # IMPORTANT: Keep the session alive during agent execution
-                agent_response = await agent.ainvoke({"messages": message})
+                agent_response = await agent.ainvoke(
+                    {"messages": [HumanMessage(content=message)]}
+                )
 
                 # Extract just the final message content for cleaner response
-                if hasattr(agent_response, "get") and "messages" in agent_response:
-                    messages = agent_response["messages"]
-                    if messages:
-                        final_message = messages[-1]
-                        if hasattr(final_message, "content"):
-                            return final_message.content
+                if messages := agent_response.get("messages"):
+                    final_message = messages[-1]
+                    if hasattr(final_message, "content"):
+                        return final_message.content
 
                 return str(agent_response)
 
@@ -140,23 +141,22 @@ async def stream_agent_response(message: str) -> AsyncGenerator[str, None]:
                 agent = create_react_agent("openai:gpt-4o", tools)
 
                 # Use astream instead of ainvoke for streaming
-                async for chunk in agent.astream({"messages": message}):
-                    # Extract content from the chunk based on LangGraph's structure
-                    if "messages" in chunk:
-                        messages = chunk["messages"]
-                        if messages:
-                            for msg in messages:
-                                if hasattr(msg, "content") and msg.content:
-                                    # Format as Server-Sent Events
-                                    yield f"data: {json.dumps({'content': msg.content, 'type': 'message'})}\n\n"
-                    elif "__end__" in chunk:
-                        # Signal end of stream
-                        yield f"data: {json.dumps({'type': 'end'})}\n\n"
-                        break
+                async for token, metadata in agent.astream(
+                    {"messages": [HumanMessage(content=message)]},
+                    stream_mode="messages",
+                ):
+                    if metadata.get("langgraph_node") == "agent":
+                        if hasattr(token, "content") and token.content:
+                            # Format as Server-Sent Events
+                            yield f"data: {json.dumps({'content': token.content, 'type': 'message'})}\n\n"
+
+        # Signal end of stream
+        yield f"data: {json.dumps({'type': 'end'})}\n\n"
 
     except Exception as e:
         logger.error(f"Error in streaming agent: {e}")
         yield f"data: {json.dumps({'error': str(e), 'type': 'error'})}\n\n"
+
 
 
 @router.post("/chat/stream")
