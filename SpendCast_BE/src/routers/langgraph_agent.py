@@ -1,17 +1,19 @@
 """LangGraph Agent router."""
 
+import base64
 import json
 import logging
 import os
 from typing import AsyncGenerator, Optional
 
+import openai
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
 from mcp import ClientSession
 from mcp.client.stdio import stdio_client, StdioServerParameters
+from pydantic import BaseModel
 
 from ..config import settings
 
@@ -35,12 +37,14 @@ router = APIRouter(
 # Request/Response models
 class ChatRequest(BaseModel):
     message: str
+    include_audio: bool = False
 
 
 class ChatResponse(BaseModel):
     response: str
     success: bool
     error: Optional[str] = None
+    audio_content: Optional[str] = None
 
 
 async def call_agent(message: str) -> str:
@@ -74,6 +78,21 @@ async def call_agent(message: str) -> str:
         raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
 
 
+async def generate_audio(text: str) -> bytes:
+    """Generate audio from text using OpenAI's TTS model."""
+    try:
+        client = openai.AsyncOpenAI()
+        response = await client.audio.speech.create(
+            model="tts-1", voice="alloy", input=text
+        )
+        return response.content
+    except Exception as e:
+        logger.error(f"Error generating audio: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Audio generation error: {str(e)}"
+        )
+
+
 @router.get("/health")
 async def agent_health_check():
     """Health check for LangGraph agent."""
@@ -91,9 +110,18 @@ async def chat_with_agent(request: ChatRequest):
         # Call the agent
         agent_response = await call_agent(request.message)
 
-        logger.info(f"Agent responded successfully")
+        audio_content = None
+        if request.include_audio:
+            logger.info("Generating audio for the response.")
+            audio_bytes = await generate_audio(agent_response)
+            audio_content = base64.b64encode(audio_bytes).decode("utf-8")
+            logger.info("Audio generated successfully.")
 
-        return ChatResponse(response=agent_response, success=True)
+        logger.info("Agent responded successfully")
+
+        return ChatResponse(
+            response=agent_response, success=True, audio_content=audio_content
+        )
 
     except HTTPException:
         raise

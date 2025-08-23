@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import logging
 import httpx
-from datetime import datetime
 
 from src.config import settings
 

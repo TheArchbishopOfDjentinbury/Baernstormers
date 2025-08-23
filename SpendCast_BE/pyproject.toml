@@ -20,6 +20,7 @@ dependencies = [
     "pytest-mock>=3.12.0",
     "pytest-httpx>=0.30.0",
     "pytest-cov>=6.2.1",
+    "openai>=1.101.0",
 ]
 
 [tool.pytest.ini_options]
