@@ -1,5 +1,5 @@
 import Achievement from '@/components/Achievement';
-import EnergyBorder from '@/components/EnergyBorder';
+import MetalFrame from '@/components/GoldenFrame';
 import { useState, useEffect } from 'react';
 import {
   Popover,
@@ -131,14 +131,14 @@ function Achievements() {
                   <PopoverTrigger asChild>
                     <button className="group cursor-pointer focus:outline-none transition-all duration-300 hover:scale-105 active:scale-95 mb-2">
                       {animationsLoaded ? (
-                        <EnergyBorder type={achievement.type} isActive={true}>
+                        <MetalFrame>
                           <Achievement
                             icon={achievement.icon}
                             type={achievement.type}
                             size="lg"
                             unlocked={achievement.unlocked}
                           />
-                        </EnergyBorder>
+                        </MetalFrame>
                       ) : (
                         <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto animate-pulse"></div>
                       )}

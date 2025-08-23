@@ -68,6 +68,10 @@ body {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Brand color utility classes */
 .bg-brand-primary {
   background-color: var(--brand-primary);

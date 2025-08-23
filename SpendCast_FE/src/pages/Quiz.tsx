@@ -24,11 +24,12 @@ export default function Quiz() {
   const handleAnswerSelect = (answerIndex: number) => {
     if (quizState.answered) return;
 
-    setQuizState(prev => {
-      const newScore = answerIndex === quizQuestions[prev.currentQuestion].correctAnswer 
-        ? prev.score + 1 
-        : prev.score;
-      
+    setQuizState((prev) => {
+      const newScore =
+        answerIndex === quizQuestions[prev.currentQuestion].correctAnswer
+          ? prev.score + 1
+          : prev.score;
+
       return {
         ...prev,
         selectedAnswer: answerIndex,
@@ -41,63 +42,69 @@ export default function Quiz() {
     setTimeout(() => {
       const nextButton = document.querySelector('.next-button-container');
       if (nextButton) {
-        nextButton.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center' 
+        nextButton.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
         });
       }
     }, 500); // Delay to let explanation animate in
   };
 
   const handleNextQuestion = () => {
-    setQuizState(prev => ({ ...prev, isTransitioning: true }));
-    
+    setQuizState((prev) => ({ ...prev, isTransitioning: true }));
+
     // Fade out current question
     setTimeout(() => {
       if (quizState.currentQuestion < quizQuestions.length - 1) {
-        setQuizState(prev => ({
+        setQuizState((prev) => ({
           ...prev,
           currentQuestion: prev.currentQuestion + 1,
           selectedAnswer: null,
           answered: false,
         }));
       } else {
-        setQuizState(prev => ({ ...prev, showResult: true }));
+        setQuizState((prev) => ({ ...prev, showResult: true }));
       }
-      
+
       // Fade in new question
       setTimeout(() => {
-        setQuizState(prev => ({ ...prev, isTransitioning: false }));
+        setQuizState((prev) => ({ ...prev, isTransitioning: false }));
       }, 50);
     }, 300);
   };
 
   if (quizState.showResult) {
     return (
-      <>
+      <div className="h-full overflow-y-auto touch-scroll">
         <style>{animationStyles}</style>
-        <QuizResults score={quizState.score} totalQuestions={quizQuestions.length} />
-      </>
+        <div className="min-h-full">
+          <QuizResults
+            score={quizState.score}
+            totalQuestions={quizQuestions.length}
+          />
+        </div>
+      </div>
     );
   }
 
   const currentQ = quizQuestions[quizState.currentQuestion];
 
   return (
-    <>
+    <div className="h-full overflow-y-auto touch-scroll">
       <style>{animationStyles}</style>
       <FloatingIcons />
-      <main className="px-4 py-8 pb-24">
+      <main className="px-4 py-8 pb-24 min-h-full">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8 animate-fade-in">
             <h2 className="text-2xl font-semibold text-brand-secondary mb-4 animate-slide-down">
               Your July 2024 Financial Story
             </h2>
             <p className="text-brand-secondary/70 mb-6 animate-fade-in-delay">
-              SpendCast analyzed your spending patterns and found something inspiring. Let's discover your financial personality together!
+              SpendCast analyzed your spending patterns and found something
+              inspiring. Let's discover your financial personality together!
             </p>
 
-            <QuizProgress 
+            <QuizProgress
               currentQuestion={quizState.currentQuestion}
               totalQuestions={quizQuestions.length}
             />
@@ -128,6 +135,6 @@ export default function Quiz() {
           )}
         </div>
       </main>
-    </>
+    </div>
   );
 }

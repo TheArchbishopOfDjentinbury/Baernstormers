@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Send, Mic, MicOff } from 'lucide-react';
 import ChatLoader from '@/components/ChatLoader';
-import {
-  useStreamingResponse,
-  type StreamingMessage,
-} from '@/hooks/useStreamingResponse';
+import AudioPlayer from '@/components/AudioPlayer';
+import { MP3AudioRecorder, audioUtils } from '@/utils/audioRecorder';
+import { useChatResponse, type ChatMessage } from '@/hooks/useChatResponse';
 
 interface Message {
   id: string;
@@ -14,7 +14,7 @@ interface Message {
   sender: 'user' | 'bot';
   timestamp: Date;
   type: 'text' | 'voice';
-  isStreaming?: boolean;
+  audioContent?: string; // Base64 audio for playback
 }
 
 const Chat: React.FC = () => {
@@ -23,8 +23,8 @@ const Chat: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingError, setRecordingError] = useState<string | null>(null);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const [responseAsAudio, setResponseAsAudio] = useState(true);
+  const mp3RecorderRef = useRef<MP3AudioRecorder | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Random GIF selection
@@ -33,45 +33,24 @@ const Chat: React.FC = () => {
     () => gifs[Math.floor(Math.random() * gifs.length)]
   );
 
-  // Streaming response hook
-  const {
-    isStreaming,
-    sendMessage: sendStreamingMessage,
-    sendAudio: sendStreamingAudio,
-  } = useStreamingResponse(
-    // onMessageUpdate - called for each chunk
-    (streamingMessage: StreamingMessage) => {
-      // Hide loader when first chunk arrives
+  // Chat response hook
+  const { sendMessage: sendChatMessage } = useChatResponse(
+    // onMessageComplete - called when response is received
+    (chatMessage: ChatMessage) => {
+      // Hide loader when response arrives
       setIsWaitingForResponse(false);
 
-      setMessages((prev) => {
-        const existingIndex = prev.findIndex(
-          (msg) => msg.id === streamingMessage.id
-        );
-        if (existingIndex >= 0) {
-          // Update existing streaming message
-          const updated = [...prev];
-          updated[existingIndex] = streamingMessage;
-          return updated;
-        } else {
-          // Add new streaming message
-          return [...prev, streamingMessage];
-        }
-      });
-    },
-    // onMessageComplete - called when streaming is done
-    (finalMessage: StreamingMessage) => {
-      setMessages((prev) => {
-        const existingIndex = prev.findIndex(
-          (msg) => msg.id === finalMessage.id
-        );
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex] = finalMessage;
-          return updated;
-        }
-        return prev;
-      });
+      // Convert ChatMessage to local Message format
+      const message: Message = {
+        id: chatMessage.id,
+        text: chatMessage.text,
+        sender: chatMessage.sender,
+        timestamp: chatMessage.timestamp,
+        type: chatMessage.type,
+        audioContent: chatMessage.audioContent,
+      };
+
+      setMessages((prev) => [...prev, message]);
     },
     // onError - called on error
     (error: string) => {
@@ -101,8 +80,8 @@ const Chat: React.FC = () => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (mediaRecorderRef.current && isRecording) {
-        mediaRecorderRef.current.stop();
+      if (mp3RecorderRef.current && isRecording) {
+        mp3RecorderRef.current.stopRecording();
       }
     };
   }, [isRecording]);
@@ -120,7 +99,7 @@ const Chat: React.FC = () => {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !isStreaming && !isWaitingForResponse) {
+    if (message.trim() && !isWaitingForResponse) {
       const messageText = message.trim();
       // Add user message immediately
       addUserMessage(messageText);
@@ -128,8 +107,8 @@ const Chat: React.FC = () => {
       setMessage('');
       // Show loader
       setIsWaitingForResponse(true);
-      // Send to backend with streaming
-      await sendStreamingMessage(messageText);
+      // Send to backend with responseAsAudio flag
+      await sendChatMessage(messageText, false, responseAsAudio);
     }
   };
 
@@ -143,59 +122,79 @@ const Chat: React.FC = () => {
   const startRecording = async () => {
     try {
       setRecordingError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
+      // Check browser support
+      if (!audioUtils.checkSupport()) {
+        throw new Error('Audio recording not supported');
+      }
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
+      // Create MP3 recorder
+      const recorder = new MP3AudioRecorder();
+      mp3RecorderRef.current = recorder;
 
-      mediaRecorder.onstop = async () => {
-        try {
-          const audioBlob = new Blob(audioChunksRef.current, {
-            type: 'audio/wav',
-          });
-
-          // Add placeholder message for user
-          addUserMessage('🎤 Voice message (recorded)', 'voice');
-
-          // Show loader
-          setIsWaitingForResponse(true);
-
-          // Send audio to backend with streaming
-          await sendStreamingAudio(audioBlob);
-        } catch (error) {
-          console.error('Error processing audio:', error);
-          const errorMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            text: 'Sorry, I could not process your voice message.',
-            sender: 'bot',
-            timestamp: new Date(),
-            type: 'text',
-          };
-          setMessages((prev) => [...prev, errorMessage]);
-        }
-
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      mediaRecorder.start();
+      // Start MP3 recording
+      await recorder.startRecording();
       setIsRecording(true);
     } catch (error) {
-      console.error('Error starting recording:', error);
-      setRecordingError('Не удалось получить доступ к микрофону');
+      console.error('Error starting MP3 recording:', error);
+      setRecordingError('Failed to start recording');
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+  const stopRecording = async () => {
+    try {
+      if (!mp3RecorderRef.current || !isRecording) {
+        return;
+      }
+
       setIsRecording(false);
+
+      // Stop recording and get MP3 blob
+      const mp3Blob = await mp3RecorderRef.current.stopRecording();
+
+      // Convert to Base64
+      const base64Audio = await audioUtils.toBase64(mp3Blob);
+
+      console.log('🎤 MP3 recorded:', {
+        size: mp3Blob.size,
+        type: mp3Blob.type,
+        base64Length: base64Audio.length,
+      });
+
+      console.log('🔊 Voice message settings:', {
+        responseAsAudio: responseAsAudio,
+        includeAudio: true,
+        messageType: 'voice',
+      });
+
+      console.log('📤 Sending voice message to backend:', {
+        messageType: 'base64 audio',
+        includeAudio: true,
+        responseAsAudio: responseAsAudio,
+        audioDataPreview: base64Audio.substring(0, 100) + '...',
+        fullAudioLength: base64Audio.length,
+      });
+
+      // Add placeholder message for user
+      addUserMessage('🎤 Voice message (MP3)', 'voice');
+
+      // Show loader
+      setIsWaitingForResponse(true);
+
+      // Send Base64 audio using unified sendMessage with flags
+      await sendChatMessage(base64Audio, true, responseAsAudio); // includeAudio=true, use current responseAsAudio setting
+    } catch (error) {
+      console.error('Error processing MP3 audio:', error);
+      setRecordingError('Failed to process recording');
+
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Sorry, I could not process your voice message.',
+        sender: 'bot',
+        timestamp: new Date(),
+        type: 'text',
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     }
   };
 
@@ -284,22 +283,19 @@ const Chat: React.FC = () => {
                         : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'
                     }`}
                   >
-                    <p className="text-base">
-                      {msg.text}
-                      {msg.isStreaming && (
-                        <span className="inline-block w-2 h-4 ml-1 bg-current animate-pulse">
-                          |
-                        </span>
-                      )}
-                    </p>
+                    <p className="text-base">{msg.text}</p>
+
+                    {/* Audio Player for voice responses */}
+                    {msg.audioContent && (
+                      <div className="mt-2">
+                        <AudioPlayer base64Audio={msg.audioContent} />
+                      </div>
+                    )}
                     <p className="text-xs opacity-70 mt-1">
                       {msg.timestamp.toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
-                      {msg.isStreaming && (
-                        <span className="ml-2 text-blue-500">typing...</span>
-                      )}
                     </p>
                   </div>
                 </div>
@@ -343,6 +339,19 @@ const Chat: React.FC = () => {
               <span>Recording...</span>
             </div>
           )}
+
+          {/* Audio Response Toggle */}
+          <div className="bg-white border-b border-gray-200 px-4 py-3">
+            <div className="max-w-4xl mx-auto flex items-center justify-between">
+              <span className="text-base text-gray-700">
+                Response me as audio
+              </span>
+              <Switch
+                checked={responseAsAudio}
+                onCheckedChange={setResponseAsAudio}
+              />
+            </div>
+          </div>
 
           {/* Chat input area */}
           <div className="px-4 py-4 pb-safe-area-inset-bottom">
