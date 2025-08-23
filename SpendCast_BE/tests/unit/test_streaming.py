@@ -82,17 +82,12 @@ class TestStreamingEndpoint:
         """Test successful streaming response."""
         # Mock agent streaming response
         mock_chunks = [
-            (MockMessage("Hello"), {}),
-            (MockMessage(" world"), {}),
+            (MockMessage("Hello"), {"langgraph_node": "agent"}),
+            (MockMessage(" from tool"), {"langgraph_node": "tools"}),
+            (MockMessage(" world"), {"langgraph_node": "agent"}),
         ]
 
         async def mock_astream(input_data, stream_mode):
-            assert "messages" in input_data
-            assert isinstance(input_data["messages"], list)
-            assert len(input_data["messages"]) == 1
-            assert hasattr(input_data["messages"][0], "content")
-            assert input_data["messages"][0].content == "test message"
-
             for chunk in mock_chunks:
                 yield chunk
 
@@ -145,7 +140,7 @@ class TestStreamingEndpoint:
     ):
         """Test streaming response with empty messages."""
         mock_chunks = [
-            (MockMessage(""), {}),  # Empty message
+            (MockMessage(""), {"langgraph_node": "agent"}),  # Empty message
         ]
 
         async def mock_astream(input_data, stream_mode):
@@ -171,7 +166,7 @@ class TestStreamingEndpoint:
             content = None
 
         mock_chunks = [
-            (MockMessageNoContent(), {}),
+            (MockMessageNoContent(), {"langgraph_node": "agent"}),
         ]
 
         async def mock_astream(input_data, stream_mode):

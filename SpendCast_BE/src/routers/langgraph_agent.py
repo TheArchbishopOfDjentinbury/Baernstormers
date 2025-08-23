@@ -141,13 +141,14 @@ async def stream_agent_response(message: str) -> AsyncGenerator[str, None]:
                 agent = create_react_agent("openai:gpt-4o", tools)
 
                 # Use astream instead of ainvoke for streaming
-                async for token, _ in agent.astream(
+                async for token, metadata in agent.astream(
                     {"messages": [HumanMessage(content=message)]},
                     stream_mode="messages",
                 ):
-                    if hasattr(token, "content") and token.content:
-                        # Format as Server-Sent Events
-                        yield f"data: {json.dumps({'content': token.content, 'type': 'message'})}\n\n"
+                    if metadata.get("langgraph_node") == "agent":
+                        if hasattr(token, "content") and token.content:
+                            # Format as Server-Sent Events
+                            yield f"data: {json.dumps({'content': token.content, 'type': 'message'})}\n\n"
 
         # Signal end of stream
         yield f"data: {json.dumps({'type': 'end'})}\n\n"
@@ -155,6 +156,7 @@ async def stream_agent_response(message: str) -> AsyncGenerator[str, None]:
     except Exception as e:
         logger.error(f"Error in streaming agent: {e}")
         yield f"data: {json.dumps({'error': str(e), 'type': 'error'})}\n\n"
+
 
 
 @router.post("/chat/stream")
