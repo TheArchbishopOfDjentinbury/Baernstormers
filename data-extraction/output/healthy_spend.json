@@ -1,0 +1,146 @@
+[
+  {
+    "category": "healthy",
+    "month": "July",
+    "monthISO": "2024-07",
+    "amount": "CHF 543.79"
+  },
+  {
+    "category": "unhealthy",
+    "month": "July",
+    "monthISO": "2024-07",
+    "amount": "CHF 92.20"
+  },
+  {
+    "category": "healthy",
+    "month": "August",
+    "monthISO": "2024-08",
+    "amount": "CHF 451.62"
+  },
+  {
+    "category": "unhealthy",
+    "month": "August",
+    "monthISO": "2024-08",
+    "amount": "CHF 59.03"
+  },
+  {
+    "category": "healthy",
+    "month": "September",
+    "monthISO": "2024-09",
+    "amount": "CHF 142.82"
+  },
+  {
+    "category": "unhealthy",
+    "month": "September",
+    "monthISO": "2024-09",
+    "amount": "CHF 49.10"
+  },
+  {
+    "category": "healthy",
+    "month": "October",
+    "monthISO": "2024-10",
+    "amount": "CHF 317.79"
+  },
+  {
+    "category": "unhealthy",
+    "month": "October",
+    "monthISO": "2024-10",
+    "amount": "CHF 40.30"
+  },
+  {
+    "category": "healthy",
+    "month": "November",
+    "monthISO": "2024-11",
+    "amount": "CHF 471.35"
+  },
+  {
+    "category": "unhealthy",
+    "month": "November",
+    "monthISO": "2024-11",
+    "amount": "CHF 104.75"
+  },
+  {
+    "category": "healthy",
+    "month": "December",
+    "monthISO": "2024-12",
+    "amount": "CHF 348.80"
+  },
+  {
+    "category": "unhealthy",
+    "month": "December",
+    "monthISO": "2024-12",
+    "amount": "CHF 48.83"
+  },
+  {
+    "category": "healthy",
+    "month": "January",
+    "monthISO": "2025-01",
+    "amount": "CHF 464.03"
+  },
+  {
+    "category": "unhealthy",
+    "month": "January",
+    "monthISO": "2025-01",
+    "amount": "CHF 70.00"
+  },
+  {
+    "category": "healthy",
+    "month": "February",
+    "monthISO": "2025-02",
+    "amount": "CHF 291.00"
+  },
+  {
+    "category": "unhealthy",
+    "month": "February",
+    "monthISO": "2025-02",
+    "amount": "CHF 102.55"
+  },
+  {
+    "category": "healthy",
+    "month": "March",
+    "monthISO": "2025-03",
+    "amount": "CHF 366.27"
+  },
+  {
+    "category": "unhealthy",
+    "month": "March",
+    "monthISO": "2025-03",
+    "amount": "CHF 113.85"
+  },
+  {
+    "category": "healthy",
+    "month": "April",
+    "monthISO": "2025-04",
+    "amount": "CHF 499.20"
+  },
+  {
+    "category": "unhealthy",
+    "month": "April",
+    "monthISO": "2025-04",
+    "amount": "CHF 117.60"
+  },
+  {
+    "category": "healthy",
+    "month": "May",
+    "monthISO": "2025-05",
+    "amount": "CHF 403.19"
+  },
+  {
+    "category": "unhealthy",
+    "month": "May",
+    "monthISO": "2025-05",
+    "amount": "CHF 88.20"
+  },
+  {
+    "category": "healthy",
+    "month": "June",
+    "monthISO": "2025-06",
+    "amount": "CHF 413.48"
+  },
+  {
+    "category": "unhealthy",
+    "month": "June",
+    "monthISO": "2025-06",
+    "amount": "CHF 67.12"
+  }
+]

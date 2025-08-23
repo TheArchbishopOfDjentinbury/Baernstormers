@@ -1,0 +1,20 @@
+PREFIX sc:   <https://static.rwpz.net/spendcast/schema#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?receipt ?date ?lineItem ?product ?productName ?category ?categoryLabel ?lineSubtotal ?quantity
+WHERE {
+  ?receipt rdf:type sc:Receipt ;
+           sc:receiptDate ?date ;
+           sc:hasLineItem ?lineItem .
+
+  ?lineItem sc:hasProduct   ?product ;
+            sc:lineSubtotal ?lineSubtotal ;
+            sc:quantity     ?quantity .
+
+  ?product sc:name     ?productName ;
+           sc:category ?category .
+
+  ?category rdfs:label ?categoryLabel .
+}
+ORDER BY ?date
