@@ -101,10 +101,11 @@ async def transcribe_audio(audio_base64: str) -> str:
     """Given an MP3 encoded in base64, transcribe the text."""
     try:
         client = openai.AsyncOpenAI()
-        audio_bytes = base64.decode(audio_base64)
+        # the input from the user is an audio recording
+        audio_bytes = base64.b64decode(audio_base64)
         audio_file = BytesIO(audio_bytes)
         audio_file.name = "user_voice.mp3"  # openai needs a name to infer the format
-        transcription = client.audio.transcriptions.create(
+        transcription = await client.audio.transcriptions.create(
             model="gpt-4o-mini-transcribe", file=audio_file, response_format="text"
         )
         return transcription
@@ -129,9 +130,8 @@ async def chat_with_agent(request: ChatRequest):
     try:
         logger.info(f"Received message: {request.message}")
 
-        # the input from the user is an audio recording
         if request.include_audio:
-            request.message = transcribe_audio(request.message)
+            request.message = await transcribe_audio(request.message)
 
         # Call the agent
         agent_response = await call_agent(request.message)
