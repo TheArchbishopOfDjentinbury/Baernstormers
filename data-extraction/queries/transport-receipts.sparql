@@ -1,31 +1,105 @@
-PREFIX sc:   <https://static.rwpz.net/spendcast/schema#>
-PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX scs: <https://static.rwpz.net/spendcast/schema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?receipt ?date ?merchant ?merchantLabel ?merchantCategory
-       (SUM(xsd:decimal(?lineSubtotal)) AS ?receiptTotal)
-       (SAMPLE(?desc) AS ?receiptDescription)
-WHERE {
-  ?receipt rdf:type sc:Receipt ;
-           sc:receiptDate ?date ;
-           sc:merchant ?merchant ;
-           sc:hasLineItem ?lineItem .
-
-  ?merchant rdf:type sc:Merchant ;
-            rdfs:label ?merchantLabel ;
-            sc:merchantCategory ?merchantCategory .
-
-  # Transport MCCs
+SELECT ?transaction ?label ?amount ?currency ?date WHERE {
+  ?transaction a scs:FinancialTransaction ;
+               rdfs:label ?label ;
+               scs:hasTransactionDate ?date ;
+               scs:hasMonetaryAmount ?monetaryAmount .
+  ?monetaryAmount scs:hasAmount ?amount ;
+                  scs:hasCurrency ?currency .
+  
+  # Filter for travel and transport related expenses
   FILTER(
-    ?merchantCategory = <https://static.rwpz.net/spendcast/mcc/MCC_3015> ||  # Airlines
-    ?merchantCategory = <https://static.rwpz.net/spendcast/mcc/MCC_4111> ||  # Local public transport
-    ?merchantCategory = <https://static.rwpz.net/spendcast/mcc/MCC_4112>     # Passenger railway
+    (
+      # Fuel and gas stations
+      CONTAINS(LCASE(?label), "benzin") ||
+      CONTAINS(LCASE(?label), "gas") ||
+      CONTAINS(LCASE(?label), "fuel") ||
+      CONTAINS(LCASE(?label), "petrol") ||
+      CONTAINS(LCASE(?label), "gasoline") ||
+      CONTAINS(LCASE(?label), "tankstelle") ||
+      CONTAINS(LCASE(?label), "shell") ||
+      CONTAINS(LCASE(?label), "bp") ||
+      CONTAINS(LCASE(?label), "esso") ||
+      
+      # Public transport
+      CONTAINS(LCASE(?label), "öv") ||
+      CONTAINS(LCASE(?label), "sbb") ||
+      CONTAINS(LCASE(?label), "transport") ||
+      CONTAINS(LCASE(?label), "train") ||
+      CONTAINS(LCASE(?label), "bus") ||
+      CONTAINS(LCASE(?label), "tram") ||
+      CONTAINS(LCASE(?label), "metro") ||
+      CONTAINS(LCASE(?label), "subway") ||
+      CONTAINS(LCASE(?label), "ticket") ||
+      CONTAINS(LCASE(?label), "zugticket") ||
+      CONTAINS(LCASE(?label), "bahnticket") ||
+      
+      # Taxi and ride sharing
+      CONTAINS(LCASE(?label), "taxi") ||
+      CONTAINS(LCASE(?label), "uber") ||
+      CONTAINS(LCASE(?label), "lyft") ||
+      CONTAINS(LCASE(?label), "bolt") ||
+      
+      # Air travel
+      CONTAINS(LCASE(?label), "flight") ||
+      CONTAINS(LCASE(?label), "airline") ||
+      CONTAINS(LCASE(?label), "airport") ||
+      CONTAINS(LCASE(?label), "flug") ||
+      CONTAINS(LCASE(?label), "lufthansa") ||
+      CONTAINS(LCASE(?label), "swiss") ||
+      CONTAINS(LCASE(?label), "easyjet") ||
+      CONTAINS(LCASE(?label), "ryanair") ||
+      
+      # Accommodation
+      CONTAINS(LCASE(?label), "hotel") ||
+      CONTAINS(LCASE(?label), "accommodation") ||
+      CONTAINS(LCASE(?label), "airbnb") ||
+      CONTAINS(LCASE(?label), "booking") ||
+      CONTAINS(LCASE(?label), "expedia") ||
+      CONTAINS(LCASE(?label), "hostel") ||
+      CONTAINS(LCASE(?label), "apartment") ||
+      
+      # General travel terms
+      CONTAINS(LCASE(?label), "travel") ||
+      CONTAINS(LCASE(?label), "reise") ||
+      CONTAINS(LCASE(?label), "vacation") ||
+      CONTAINS(LCASE(?label), "holiday") ||
+      CONTAINS(LCASE(?label), "urlaub") ||
+      
+      # Car related
+      CONTAINS(LCASE(?label), "parking") ||
+      CONTAINS(LCASE(?label), "toll") ||
+      CONTAINS(LCASE(?label), "vignette") ||
+      CONTAINS(LCASE(?label), "autobahnvignette") ||
+      CONTAINS(LCASE(?label), "car rental") ||
+      CONTAINS(LCASE(?label), "rental car") ||
+      CONTAINS(LCASE(?label), "mietwagen") ||
+      CONTAINS(LCASE(?label), "hertz") ||
+      CONTAINS(LCASE(?label), "avis") ||
+      CONTAINS(LCASE(?label), "europcar") ||
+      
+      # Water transport
+      CONTAINS(LCASE(?label), "ferry") ||
+      CONTAINS(LCASE(?label), "cruise") ||
+      CONTAINS(LCASE(?label), "boat") ||
+      CONTAINS(LCASE(?label), "ship") ||
+      
+      # Location-based travel indicators
+      CONTAINS(LCASE(?label), "genova") ||
+      CONTAINS(LCASE(?label), "bellinzona") ||
+      CONTAINS(LCASE(?label), "sardinien") ||
+      CONTAINS(LCASE(?label), "kopenhagen") ||
+      CONTAINS(LCASE(?label), "copenhagen") ||
+      CONTAINS(LCASE(?label), "vesterboro") ||
+      CONTAINS(LCASE(?label), "saas fee")
+    ) &&
+    # Exclude Ricardo fees and other non-travel expenses
+    !CONTAINS(LCASE(?label), "ricardo") &&
+    !CONTAINS(LCASE(?label), "ebay") &&
+    !CONTAINS(LCASE(?label), "amazon") &&
+    !CONTAINS(LCASE(?label), "shop")
   )
-
-  ?lineItem sc:lineSubtotal ?lineSubtotal .
-
-  OPTIONAL { ?receipt sc:description ?desc }
-}
-GROUP BY ?receipt ?date ?merchant ?merchantLabel ?merchantCategory
-ORDER BY ?date ?merchantLabel
+} 
+ORDER BY ?date

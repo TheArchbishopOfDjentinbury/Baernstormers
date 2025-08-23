@@ -1,1 +1,122 @@
-[]
+[
+  {
+    "category": "fuel and gas",
+    "month": "July",
+    "monthISO": "2024-07",
+    "amount": "CHF 42.75"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "August",
+    "monthISO": "2024-08",
+    "amount": "CHF 37.05"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "September",
+    "monthISO": "2024-09",
+    "amount": "CHF 39.35"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "October",
+    "monthISO": "2024-10",
+    "amount": "CHF 186.77"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "November",
+    "monthISO": "2024-11",
+    "amount": "CHF 63.50"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "December",
+    "monthISO": "2024-12",
+    "amount": "CHF 62.55"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "January",
+    "monthISO": "2025-01",
+    "amount": "CHF 55.60"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "February",
+    "monthISO": "2025-02",
+    "amount": "CHF 41.55"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "March",
+    "monthISO": "2025-03",
+    "amount": "CHF 54.20"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "April",
+    "monthISO": "2025-04",
+    "amount": "CHF 67.40"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "May",
+    "monthISO": "2025-05",
+    "amount": "CHF 54.40"
+  },
+  {
+    "category": "fuel and gas",
+    "month": "June",
+    "monthISO": "2025-06",
+    "amount": "CHF 64.35"
+  },
+  {
+    "category": "public transport",
+    "month": "December",
+    "monthISO": "2024-12",
+    "amount": "CHF 148.80"
+  },
+  {
+    "category": "public transport",
+    "month": "February",
+    "monthISO": "2025-02",
+    "amount": "CHF 1501.00"
+  },
+  {
+    "category": "public transport",
+    "month": "May",
+    "monthISO": "2025-05",
+    "amount": "CHF 874.00"
+  },
+  {
+    "category": "travel and transport other",
+    "month": "September",
+    "monthISO": "2024-09",
+    "amount": "CHF 1674.85"
+  },
+  {
+    "category": "travel and transport other",
+    "month": "October",
+    "monthISO": "2024-10",
+    "amount": "CHF 510.64"
+  },
+  {
+    "category": "travel and transport other",
+    "month": "November",
+    "monthISO": "2024-11",
+    "amount": "CHF 839.00"
+  },
+  {
+    "category": "travel and transport other",
+    "month": "December",
+    "monthISO": "2024-12",
+    "amount": "CHF 40.00"
+  },
+  {
+    "category": "travel and transport other",
+    "month": "May",
+    "monthISO": "2025-05",
+    "amount": "CHF 508.39"
+  }
+]
