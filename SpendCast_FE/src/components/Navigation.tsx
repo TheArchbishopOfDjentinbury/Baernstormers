@@ -6,7 +6,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Trophy, MessageCircle, Brain } from 'lucide-react';
+import {
+  ChevronDown,
+  Trophy,
+  MessageCircle,
+  Brain,
+  Podcast,
+} from 'lucide-react';
 
 const Navigation: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +31,8 @@ const Navigation: React.FC = () => {
         return 'Achievements';
       case '/quiz':
         return 'Quiz';
+      case '/podcast':
+        return 'Podcast';
       default:
         return 'Navigation';
     }
@@ -65,6 +73,13 @@ const Navigation: React.FC = () => {
           >
             <Brain className="h-4 w-4 text-brand-secondary" />
             <span className="text-brand-secondary font-medium">Quiz</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer rounded-md"
+            onClick={() => handleNavigation('/podcast')}
+          >
+            <Podcast className="h-4 w-4 text-brand-secondary" />
+            <span className="text-brand-secondary font-medium">Podcast</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
