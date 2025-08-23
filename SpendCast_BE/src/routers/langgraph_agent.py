@@ -48,6 +48,10 @@ class ChatResponse(BaseModel):
     audio_content: Optional[str] = None
 
 
+# preprompt = "You are a useful chat agent for PostFinance private clients. You are cheerful and warm, and give short, concise and sometimes funny answers."
+preprompt = "You are a useful chat agent for PostFinance private clients. You are cheerful and warm, and give SHORT and concise answers. Sometimes you make some jokes."
+
+
 async def call_agent(message: str) -> str:
     """Call the agent with a message"""
     try:
@@ -59,7 +63,7 @@ async def call_agent(message: str) -> str:
                 # Get tools
                 tools = await load_mcp_tools(session)
                 # Create and run the agent
-                agent = create_react_agent("openai:gpt-4o", tools)
+                agent = create_react_agent("openai:gpt-4.1", tools, prompt=preprompt)
 
                 # IMPORTANT: Keep the session alive during agent execution
                 agent_response = await agent.ainvoke(
@@ -89,9 +93,7 @@ async def generate_audio(text: str) -> bytes:
         return response.content
     except Exception as e:
         logger.error(f"Error generating audio: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Audio generation error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Audio generation error: {str(e)}")
 
 
 @router.get("/health")
@@ -138,7 +140,7 @@ async def stream_agent_response(message: str) -> AsyncGenerator[str, None]:
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 tools = await load_mcp_tools(session)
-                agent = create_react_agent("openai:gpt-4o", tools)
+                agent = create_react_agent("openai:gpt-4.1", tools)
 
                 # Use astream instead of ainvoke for streaming
                 async for token, metadata in agent.astream(
@@ -156,7 +158,6 @@ async def stream_agent_response(message: str) -> AsyncGenerator[str, None]:
     except Exception as e:
         logger.error(f"Error in streaming agent: {e}")
         yield f"data: {json.dumps({'error': str(e), 'type': 'error'})}\n\n"
-
 
 
 @router.post("/chat/stream")
