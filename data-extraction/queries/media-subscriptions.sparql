@@ -1,0 +1,45 @@
+PREFIX scs: <https://static.rwpz.net/spendcast/schema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?transaction ?label ?amount ?currency ?date WHERE {
+  ?transaction a scs:FinancialTransaction ;
+               rdfs:label ?label ;
+               scs:hasTransactionDate ?date ;
+               scs:hasMonetaryAmount ?monetaryAmount .
+  ?monetaryAmount scs:hasAmount ?amount ;
+                  scs:hasCurrency ?currency .
+  
+  # Filter for telecommunications, utilities, and online subscriptions
+  FILTER(
+    CONTAINS(LCASE(?label), "netflix") ||
+    CONTAINS(LCASE(?label), "spotify") ||
+    CONTAINS(LCASE(?label), "prime") ||
+    CONTAINS(LCASE(?label), "disney") ||
+    CONTAINS(LCASE(?label), "hulu") ||
+    CONTAINS(LCASE(?label), "streaming") ||
+    CONTAINS(LCASE(?label), "apple music") ||
+    CONTAINS(LCASE(?label), "youtube premium") ||
+    CONTAINS(LCASE(?label), "amazon prime") ||
+    CONTAINS(LCASE(?label), "salt") ||
+    CONTAINS(LCASE(?label), "sunrise") ||
+    CONTAINS(LCASE(?label), "swisscom") ||
+    CONTAINS(LCASE(?label), "mobile") ||
+    CONTAINS(LCASE(?label), "internet") ||
+    CONTAINS(LCASE(?label), "phone") ||
+    CONTAINS(LCASE(?label), "telecom") ||
+    CONTAINS(LCASE(?label), "bkw") ||
+    CONTAINS(LCASE(?label), "ewb") ||
+    CONTAINS(LCASE(?label), "utility") ||
+    CONTAINS(LCASE(?label), "electricity") ||
+    CONTAINS(LCASE(?label), "gas") ||
+    CONTAINS(LCASE(?label), "water") ||
+    CONTAINS(LCASE(?label), "heating") ||
+    CONTAINS(LCASE(?label), "subscription") ||
+    CONTAINS(LCASE(?label), "abo") ||
+    CONTAINS(LCASE(?label), "öv") ||
+    CONTAINS(LCASE(?label), "transport") ||
+    CONTAINS(LCASE(?label), "sbb") ||
+    CONTAINS(LCASE(?label), "public transport")
+  )
+} 
+ORDER BY ?date
