@@ -4,7 +4,7 @@ export const quizQuestions: Question[] = [
   {
     id: 1,
     question:
-      "Your July spending story reveals something amazing about your values. What do you think it shows?",
+      "Your August spending story reveals something amazing about your values. What do you think it shows?",
     options: [
       "You prioritize convenience over everything",
       "Health & sustainability are your secret superpowers",
@@ -13,12 +13,12 @@ export const quizQuestions: Question[] = [
     ],
     correctAnswer: 1,
     explanation:
-      "Absolutely! Your July spending tells an inspiring story: CHF 544 on healthy food vs CHF 92 on junk food, plus CHF 647 on Swiss products vs CHF 33 imported. You're literally voting with your wallet for a better world!",
+      "Absolutely! Your August spending tells an inspiring story: CHF 452 on healthy food vs CHF 59 on junk food, plus CHF 494 on Swiss products vs CHF 43 imported. You're literally voting with your wallet for a better world!",
   },
   {
     id: 2,
     question:
-      "If your July spending habits were a Netflix documentary, what would be the title?",
+      "If your August spending habits were a Netflix documentary, what would be the title?",
     options: [
       '"The Healthy Swiss Patriot"',
       '"Fast Food Nation"',
@@ -27,7 +27,7 @@ export const quizQuestions: Question[] = [
     ],
     correctAnswer: 0,
     explanation:
-      'Perfect choice! Your spending pattern screams "The Healthy Swiss Patriot" - 85% healthy food choices and 95% Swiss-made products. That\'s documentary-worthy conscious consumption!',
+      'Perfect choice! Your spending pattern screams "The Healthy Swiss Patriot" - 88% healthy food choices and 92% Swiss-made products. That\'s documentary-worthy conscious consumption!',
   },
   {
     id: 3,
@@ -41,7 +41,7 @@ export const quizQuestions: Question[] = [
     ],
     correctAnswer: 1,
     explanation:
-      'Achievement unlocked! "Conscious Consumer Hero" - Your July spending shows you invested CHF 544 in your health and CHF 647 in local Swiss economy. That\'s next-level mindful spending!',
+      'Achievement unlocked! "Conscious Consumer Hero" - Your August spending shows you invested CHF 452 in your health and CHF 494 in local Swiss economy. That\'s next-level mindful spending!',
   },
   {
     id: 4,
@@ -55,12 +55,12 @@ export const quizQuestions: Question[] = [
     ],
     correctAnswer: 1,
     explanation:
-      "Spot on! \"This year, your wallet became a force for good\" - because spending CHF 544 on health and CHF 647 on Swiss products isn't just shopping, it's making a statement about the world you want to live in!",
+      "Spot on! \"This year, your wallet became a force for good\" - because spending CHF 452 on health and CHF 494 on Swiss products isn't just shopping, it's making a statement about the world you want to live in!",
   },
   {
     id: 5,
     question:
-      "Your spending could inspire others. What wisdom would you share about July 2024?",
+      "Your spending could inspire others. What wisdom would you share about August 2024?",
     options: [
       "Every purchase is a vote for the world you want",
       "Money doesn't matter anyway",
@@ -69,7 +69,7 @@ export const quizQuestions: Question[] = [
     ],
     correctAnswer: 0,
     explanation:
-      "Beautifully said! Your July choices prove that \"every purchase is a vote\" - 6x more on healthy vs unhealthy food, 20x more on Swiss vs imported goods. You're not just consuming, you're creating positive impact!",
+      "Beautifully said! Your August choices prove that \"every purchase is a vote\" - 8x more on healthy vs unhealthy food, 11x more on Swiss vs imported goods. You're not just consuming, you're creating positive impact!",
   },
   {
     id: 6,
@@ -83,6 +83,6 @@ export const quizQuestions: Question[] = [
     ],
     correctAnswer: 0,
     explanation:
-      'Perfect match! "The Mindful Investor" - You invest in your health (CHF 544 healthy food) and your community (CHF 647 Swiss products). Every franc spent is intentional and values-driven. That\'s financial wisdom!',
+      'Perfect match! "The Mindful Investor" - You invest in your health (CHF 452 healthy food) and your community (CHF 494 Swiss products). Every franc spent is intentional and values-driven. That\'s financial wisdom!',
   },
 ];
