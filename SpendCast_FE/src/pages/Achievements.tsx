@@ -1,5 +1,11 @@
 import Achievement from '@/components/Achievement';
+import EnergyBorder from '@/components/EnergyBorder';
 import { useState, useEffect } from 'react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 // Import Lottie animations
 import coffeeAnimation from '@/assets/coffee.json';
@@ -93,99 +99,107 @@ function Achievements() {
         </div>
 
         {/* Achievements Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {achievements.map((achievement) => {
             // Color schemes based on achievement type
             const typeStyles = {
               good: {
-                border: achievement.unlocked
-                  ? 'border-green-200'
-                  : 'border-gray-200',
-                background: achievement.unlocked ? 'bg-green-50' : 'bg-gray-50',
                 accent: 'text-green-600',
                 progress: 'bg-green-500',
+                border: 'border-green-200',
+                background: 'bg-green-50',
               },
               medium: {
-                border: achievement.unlocked
-                  ? 'border-orange-200'
-                  : 'border-gray-200',
-                background: achievement.unlocked
-                  ? 'bg-orange-50'
-                  : 'bg-gray-50',
                 accent: 'text-orange-600',
                 progress: 'bg-orange-500',
+                border: 'border-orange-200',
+                background: 'bg-orange-50',
               },
               bad: {
-                border: achievement.unlocked
-                  ? 'border-red-200'
-                  : 'border-gray-200',
-                background: achievement.unlocked ? 'bg-red-50' : 'bg-gray-50',
                 accent: 'text-red-600',
                 progress: 'bg-red-500',
+                border: 'border-red-200',
+                background: 'bg-red-50',
               },
             };
 
             const styles = typeStyles[achievement.type];
 
             return (
-              <div
-                key={achievement.id}
-                className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg ${styles.border} ${styles.background} shadow-md`}
-              >
-                {/* Category Badge */}
-                <div className="flex justify-between items-start mb-4">
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${styles.accent} bg-white/70`}
+              <div key={achievement.id} className="text-center">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="group cursor-pointer focus:outline-none transition-all duration-300 hover:scale-105 active:scale-95 mb-2">
+                      {animationsLoaded ? (
+                        <EnergyBorder type={achievement.type} isActive={true}>
+                          <Achievement
+                            icon={achievement.icon}
+                            type={achievement.type}
+                            size="lg"
+                            unlocked={achievement.unlocked}
+                          />
+                        </EnergyBorder>
+                      ) : (
+                        <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto animate-pulse"></div>
+                      )}
+                    </button>
+                  </PopoverTrigger>
+
+                  <PopoverContent
+                    className="w-80 bg-white border border-gray-200 shadow-lg"
+                    side="top"
+                    align="center"
                   >
-                    {achievement.category}
-                  </span>
-                  <div className="flex items-center gap-1 text-xs text-green-600 font-medium">
-                    <span>✨</span>
-                    Achieved!
-                  </div>
-                </div>
+                    {/* Detailed Info in Popover */}
+                    <div className="space-y-3">
+                      {/* Header */}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="text-lg font-bold text-gray-800">
+                            {achievement.title}
+                          </h4>
+                          <span
+                            className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${styles.accent} bg-white border ${styles.border} mt-1`}
+                          >
+                            {achievement.category}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                          <span>✨</span>
+                          Achieved!
+                        </div>
+                      </div>
 
-                {/* Achievement Animation */}
-                <div className="mb-4">
-                  {animationsLoaded ? (
-                    <Achievement
-                      icon={achievement.icon}
-                      type={achievement.type}
-                      size="lg"
-                      unlocked={achievement.unlocked}
-                    />
-                  ) : (
-                    <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto animate-pulse"></div>
-                  )}
-                </div>
+                      {/* Description */}
+                      <p className="text-sm text-gray-600">
+                        {achievement.description}
+                      </p>
 
-                {/* Achievement Info */}
-                <div className="text-center">
-                  <h3 className="text-lg font-bold mb-2 text-gray-800">
-                    {achievement.title}
-                  </h3>
-                  <p className="text-sm mb-4 text-gray-600">
-                    {achievement.description}
-                  </p>
-
-                  {/* Progress Bar */}
-                  <div className="mb-2">
-                    <div className="flex justify-between text-xs mb-2">
-                      <span className="text-gray-700 font-medium">
-                        Progress
-                      </span>
-                      <span className={`${styles.accent} font-bold`}>
-                        {achievement.progress}%
-                      </span>
+                      {/* Progress Details */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-700 font-medium">
+                            Progress
+                          </span>
+                          <span className={`${styles.accent} font-bold`}>
+                            {achievement.progress}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div
+                            className={`h-3 rounded-full transition-all duration-700 ${styles.progress}`}
+                            style={{ width: `${achievement.progress}%` }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div
-                        className={`h-3 rounded-full transition-all duration-700 ${styles.progress}`}
-                        style={{ width: `${achievement.progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
+                  </PopoverContent>
+                </Popover>
+
+                {/* Achievement Title */}
+                <h3 className="text-sm font-bold text-gray-800">
+                  {achievement.title}
+                </h3>
               </div>
             );
           })}
