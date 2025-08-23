@@ -1,4 +1,5 @@
 """Application configuration."""
+
 import os
 from typing import List
 
@@ -13,9 +14,11 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # GraphDB connection (from MCP credentials)
-    graphdb_url: str = os.getenv("GRAPHDB_URL", "http://localhost:7200/repositories/spendcast")
-    graphdb_user: str = os.getenv("GRAPHDB_USER", "admin")
-    graphdb_password: str = os.getenv("GRAPHDB_PASSWORD", "admin")
+    graphdb_url: str = os.getenv(
+        "GRAPHDB_URL", "http://localhost:7200/repositories/spendcast"
+    )
+    graphdb_user: str = os.getenv("GRAPHDB_USER", "")
+    graphdb_password: str = os.getenv("GRAPHDB_PASSWORD", "")
 
     # Database (fallback SQLite for local development)
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./spendcast.db")
@@ -36,8 +39,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
 
     # OpenAI API configuration for LangGraph Agent
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
-    
+    openai_api_key: str = os.getenv("OPENAI_API_KEY")
+
     # MCP Server configuration
     mcp_server_command: str = os.getenv("MCP_SERVER_COMMAND", "uv")
     mcp_server_args: List[str] = ["run", "src/routers/spendcast_mcp_server.py"]
