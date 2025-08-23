@@ -50,7 +50,7 @@ class ChatResponse(BaseModel):
 
 
 # preprompt = "You are a useful chat agent for PostFinance private clients. You are cheerful and warm, and give short, concise and sometimes funny answers."
-preprompt = "You are a useful chat agent for PostFinance private clients. You are cheerful and warm, and give SHORT and concise answers. Sometimes you make some jokes."
+preprompt = "You are a useful chat agent for PostFinance private clients. You are currently talking to Jeanine Marie Blumenthal, with Customer ID: 76178901. You are cheerful and warm, and give SHORT and concise answers. Sometimes you make some jokes."
 
 
 async def call_agent(message: str) -> str:
@@ -101,10 +101,11 @@ async def transcribe_audio(audio_base64: str) -> str:
     """Given an MP3 encoded in base64, transcribe the text."""
     try:
         client = openai.AsyncOpenAI()
-        audio_bytes = base64.decode(audio_base64)
+        # the input from the user is an audio recording
+        audio_bytes = base64.b64decode(audio_base64)
         audio_file = BytesIO(audio_bytes)
-        audio_file.name = "user_voice.mp3"  # openai needs a name to infer the format
-        transcription = client.audio.transcriptions.create(
+        audio_file.name = "user_voice.webm"  # openai needs a name to infer the format
+        transcription = await client.audio.transcriptions.create(
             model="gpt-4o-mini-transcribe", file=audio_file, response_format="text"
         )
         return transcription
@@ -129,9 +130,8 @@ async def chat_with_agent(request: ChatRequest):
     try:
         logger.info(f"Received message: {request.message}")
 
-        # the input from the user is an audio recording
         if request.include_audio:
-            request.message = transcribe_audio(request.message)
+            request.message = await transcribe_audio(request.message)
 
         # Call the agent
         agent_response = await call_agent(request.message)

@@ -97,7 +97,7 @@ export default function Quiz() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8 animate-fade-in">
             <h2 className="text-2xl font-semibold text-brand-secondary mb-4 animate-slide-down">
-              Your July 2024 Financial Story
+              Your August 2024 Financial Story
             </h2>
             <p className="text-brand-secondary/70 mb-6 animate-fade-in-delay">
               SpendCast analyzed your spending patterns and found something

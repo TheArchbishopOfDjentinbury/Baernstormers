@@ -11,6 +11,7 @@ from src.routers import (
     accounts,
     transactions,
     langgraph_agent,
+    openfoodfacts,
 )
 
 app = FastAPI(
@@ -36,6 +37,7 @@ app.include_router(customers.router)
 app.include_router(accounts.router)
 app.include_router(transactions.router)
 app.include_router(langgraph_agent.router)
+app.include_router(openfoodfacts.router)
 
 
 @app.get("/")
@@ -54,6 +56,7 @@ async def root():
             "accounts": "/api/v1/accounts",
             "transactions": "/api/v1/transactions",
             "agent": "/api/v1/agent/chat",
+            "openfoodfacts": "/api/v1/openfoodfacts",
         },
     }
 
