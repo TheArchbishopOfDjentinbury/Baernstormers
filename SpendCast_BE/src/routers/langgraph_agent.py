@@ -1,10 +1,12 @@
 """LangGraph Agent router."""
 
+import json
 import logging
 import os
-from typing import Optional
+from typing import AsyncGenerator, Optional
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
@@ -98,3 +100,50 @@ async def chat_with_agent(request: ChatRequest):
     except Exception as e:
         logger.error(f"Unexpected error in chat endpoint: {e}")
         return ChatResponse(response="", success=False, error=str(e))
+
+
+async def stream_agent_response(message: str) -> AsyncGenerator[str, None]:
+    """Stream agent response as it's generated"""
+    try:
+        async with stdio_client(server_params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                tools = await load_mcp_tools(session)
+                agent = create_react_agent("openai:gpt-4o", tools)
+
+                # Use astream instead of ainvoke for streaming
+                async for chunk in agent.astream({"messages": message}):
+                    # Extract content from the chunk based on LangGraph's structure
+                    if "messages" in chunk:
+                        messages = chunk["messages"]
+                        if messages:
+                            for msg in messages:
+                                if hasattr(msg, "content") and msg.content:
+                                    # Format as Server-Sent Events
+                                    yield f"data: {json.dumps({'content': msg.content, 'type': 'message'})}\n\n"
+                    elif "__end__" in chunk:
+                        # Signal end of stream
+                        yield f"data: {json.dumps({'type': 'end'})}\n\n"
+                        break
+
+    except Exception as e:
+        logger.error(f"Error in streaming agent: {e}")
+        yield f"data: {json.dumps({'error': str(e), 'type': 'error'})}\n\n"
+
+
+@router.post("/chat/stream")
+async def stream_chat_with_agent(request: ChatRequest):
+    """
+    Stream chat with the LangGraph agent using Server-Sent Events
+    """
+    logger.info(f"Received streaming message: {request.message}")
+
+    return StreamingResponse(
+        stream_agent_response(request.message),
+        media_type="text/plain",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Content-Type": "text/plain; charset=utf-8",
+        },
+    )

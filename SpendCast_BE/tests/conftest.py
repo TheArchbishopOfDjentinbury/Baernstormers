@@ -40,13 +40,13 @@ def mock_graphdb_response():
                 {
                     "name": {"value": "John Doe"},
                     "email": {"value": "john@example.com"},
-                    "phone": {"value": "+1234567890"}
+                    "phone": {"value": "+1234567890"},
                 },
                 {
                     "name": {"value": "Jane Smith"},
                     "email": {"value": "jane@example.com"},
-                    "phone": {"value": "+1234567891"}
-                }
+                    "phone": {"value": "+1234567891"},
+                },
             ]
         }
     }
@@ -64,7 +64,7 @@ def mock_customer_details_response():
                     "email": {"value": "john@example.com"},
                     "phone": {"value": "+1234567890"},
                     "birth_date": {"value": "1990-01-01"},
-                    "citizenship": {"value": "US"}
+                    "citizenship": {"value": "US"},
                 }
             ]
         }
@@ -79,17 +79,21 @@ def mock_customer_accounts_response():
             "bindings": [
                 {
                     "account": {"value": "https://static.rwpz.net/spendcast/account1"},
-                    "account_type": {"value": "https://static.rwpz.net/spendcast/schema#CheckingAccount"},
+                    "account_type": {
+                        "value": "https://static.rwpz.net/spendcast/schema#CheckingAccount"
+                    },
                     "balance": {"value": "1500.00"},
                     "currency": {"value": "https://static.rwpz.net/spendcast/CHF"},
-                    "iban": {"value": "CH1234567890123456789"}
+                    "iban": {"value": "CH1234567890123456789"},
                 },
                 {
                     "account": {"value": "https://static.rwpz.net/spendcast/account2"},
-                    "account_type": {"value": "https://static.rwpz.net/spendcast/schema#SavingsAccount"},
+                    "account_type": {
+                        "value": "https://static.rwpz.net/spendcast/schema#SavingsAccount"
+                    },
                     "balance": {"value": "5000.00"},
-                    "currency": {"value": "https://static.rwpz.net/spendcast/CHF"}
-                }
+                    "currency": {"value": "https://static.rwpz.net/spendcast/CHF"},
+                },
             ]
         }
     }
@@ -106,15 +110,15 @@ def mock_transactions_response():
                     "amount": {"value": "25.50"},
                     "date": {"value": "2025-01-15T14:30:00"},
                     "status": {"value": "completed"},
-                    "merchant_name": {"value": "Coffee Shop"}
+                    "merchant_name": {"value": "Coffee Shop"},
                 },
                 {
                     "transaction": {"value": "https://static.rwpz.net/spendcast/tx2"},
                     "amount": {"value": "120.00"},
                     "date": {"value": "2025-01-14T10:15:00"},
                     "status": {"value": "completed"},
-                    "merchant_name": {"value": "Grocery Store"}
-                }
+                    "merchant_name": {"value": "Grocery Store"},
+                },
             ]
         }
     }
@@ -129,13 +133,13 @@ def mock_spending_analysis_response():
                 {
                     "category_label": {"value": "Food & Dining"},
                     "total_spent": {"value": "450.75"},
-                    "transaction_count": {"value": "18"}
+                    "transaction_count": {"value": "18"},
                 },
                 {
                     "category_label": {"value": "Transportation"},
                     "total_spent": {"value": "230.00"},
-                    "transaction_count": {"value": "8"}
-                }
+                    "transaction_count": {"value": "8"},
+                },
             ]
         }
     }
@@ -150,13 +154,13 @@ def mock_monthly_spending_response():
                 {
                     "month": {"value": "2025-01"},
                     "total_spent": {"value": "680.75"},
-                    "transaction_count": {"value": "26"}
+                    "transaction_count": {"value": "26"},
                 },
                 {
                     "month": {"value": "2025-02"},
                     "total_spent": {"value": "520.30"},
-                    "transaction_count": {"value": "19"}
-                }
+                    "transaction_count": {"value": "19"},
+                },
             ]
         }
     }
@@ -178,7 +182,7 @@ def mock_hello_world_data():
     """Mock hello world CRUD response."""
     return {
         "message": "Hello from SpendCast API!",
-        "service": "Test Spendcast API", 
+        "service": "Test Spendcast API",
         "version": "0.1.0",
-        "status": "healthy"
+        "status": "healthy",
     }

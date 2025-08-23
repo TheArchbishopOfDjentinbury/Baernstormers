@@ -184,7 +184,6 @@ Mock responses in fixtures simulate realistic GraphDB SPARQL query results and f
 Tests can be run in CI/CD pipelines:
 
 ```yaml
-# Example GitHub Actions step
 - name: Run tests
   run: |
     pip install -r requirements.txt
@@ -197,14 +196,6 @@ For performance testing of endpoints under load, consider using:
 - `pytest-benchmark` for microbenchmarks
 - `locust` for load testing
 - `pytest-xdist` for parallel test execution
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Import Errors**: Ensure you're running tests from the project root directory
-2. **Async Test Issues**: Make sure to use `@pytest.mark.asyncio` for async tests
-3. **Mock Not Working**: Check that patch path matches the actual import path in the module being tested
 
 ### Debug Mode
 
