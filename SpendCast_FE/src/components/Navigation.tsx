@@ -31,43 +31,43 @@ const Navigation: React.FC = () => {
   };
 
   return (
-    <div className="border-t border-brand-secondary/20 px-4 py-3">
-      <div className="max-w-4xl mx-auto flex justify-center">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex items-center gap-2 px-4 py-2 bg-brand-secondary text-white rounded-lg font-medium hover:bg-brand-secondary/90 transition-colors">
-            {getCurrentPageName()}
-            <ChevronDown className="h-4 w-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="center"
-            className="w-48 bg-white border border-brand-secondary/20 shadow-lg"
+    <div className="w-full bg-white border-t border-gray-200 shadow-sm">
+      <DropdownMenu>
+        <DropdownMenuTrigger className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-brand-secondary border border-gray-300 font-medium hover:bg-gray-50 hover:border-brand-secondary transition-all duration-200 shadow-sm">
+          {getCurrentPageName()}
+          <ChevronDown className="h-4 w-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="start"
+          sideOffset={0}
+          className="w-screen max-w-none bg-white border border-gray-200 shadow-lg [&]:rounded-t-none [&]:rounded-b-md"
+          style={{ width: '100vw', maxWidth: '100vw' }}
+        >
+          <DropdownMenuItem
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-brand-tertiary cursor-pointer rounded-md"
+            onClick={() => handleNavigation('/achievements')}
           >
-            <DropdownMenuItem
-              className="flex items-center gap-3 px-3 py-2 hover:bg-brand-tertiary cursor-pointer"
-              onClick={() => handleNavigation('/achievements')}
-            >
-              <Trophy className="h-4 w-4 text-brand-secondary" />
-              <span className="text-brand-secondary font-medium">
-                Achievements
-              </span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="flex items-center gap-3 px-3 py-2 hover:bg-brand-tertiary cursor-pointer"
-              onClick={() => handleNavigation('/chat')}
-            >
-              <MessageCircle className="h-4 w-4 text-brand-secondary" />
-              <span className="text-brand-secondary font-medium">Chat</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="flex items-center gap-3 px-3 py-2 hover:bg-brand-tertiary cursor-pointer"
-              onClick={() => handleNavigation('/quiz')}
-            >
-              <Brain className="h-4 w-4 text-brand-secondary" />
-              <span className="text-brand-secondary font-medium">Quiz</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+            <Trophy className="h-4 w-4 text-brand-secondary" />
+            <span className="text-brand-secondary font-medium">
+              Achievements
+            </span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer rounded-md"
+            onClick={() => handleNavigation('/chat')}
+          >
+            <MessageCircle className="h-4 w-4 text-brand-secondary" />
+            <span className="text-brand-secondary font-medium">Chat</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer rounded-md"
+            onClick={() => handleNavigation('/quiz')}
+          >
+            <Brain className="h-4 w-4 text-brand-secondary" />
+            <span className="text-brand-secondary font-medium">Quiz</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
