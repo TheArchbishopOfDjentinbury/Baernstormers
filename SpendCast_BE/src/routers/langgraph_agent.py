@@ -15,6 +15,7 @@ from langgraph.prebuilt import create_react_agent
 from mcp import ClientSession
 from mcp.client.stdio import stdio_client, StdioServerParameters
 from pydantic import BaseModel
+from io import BytesIO
 
 from ..config import settings
 
@@ -35,10 +36,10 @@ router = APIRouter(
 )
 
 
-# Request/Response models
 class ChatRequest(BaseModel):
     message: str
     include_audio: bool = False
+    response_as_audio: bool = False
 
 
 class ChatResponse(BaseModel):
@@ -96,6 +97,24 @@ async def generate_audio(text: str) -> bytes:
         raise HTTPException(status_code=500, detail=f"Audio generation error: {str(e)}")
 
 
+async def transcribe_audio(audio_base64: str) -> str:
+    """Given an MP3 encoded in base64, transcribe the text."""
+    try:
+        client = openai.AsyncOpenAI()
+        audio_bytes = base64.decode(audio_base64)
+        audio_file = BytesIO(audio_bytes)
+        audio_file.name = "user_voice.mp3"  # openai needs a name to infer the format
+        transcription = client.audio.transcriptions.create(
+            model="gpt-4o-mini-transcribe", file=audio_file, response_format="text"
+        )
+        return transcription
+    except Exception as e:
+        logger.error(f"Error transcribing audio: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Audio transcription error: {str(e)}"
+        )
+
+
 @router.get("/health")
 async def agent_health_check():
     """Health check for LangGraph agent."""
@@ -110,11 +129,16 @@ async def chat_with_agent(request: ChatRequest):
     try:
         logger.info(f"Received message: {request.message}")
 
+        # the input from the user is an audio recording
+        if request.include_audio:
+            request.message = transcribe_audio(request.message)
+
         # Call the agent
         agent_response = await call_agent(request.message)
 
         audio_content = None
-        if request.include_audio:
+        # the user expects text AND audio as a response
+        if request.response_as_audio:
             logger.info("Generating audio for the response.")
             audio_bytes = await generate_audio(agent_response)
             audio_content = base64.b64encode(audio_bytes).decode("utf-8")
