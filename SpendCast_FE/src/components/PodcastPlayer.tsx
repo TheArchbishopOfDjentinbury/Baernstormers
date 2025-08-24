@@ -38,12 +38,12 @@ function PodcastPlayer({
         >
           <Lottie
             animationData={animationData}
-            loop={isPlaying}
-            autoplay={isPlaying}
+            loop={true}
+            autoplay={true}
             style={{
               width: 300,
               height: 300,
-              filter: isPlaying ? 'brightness(1.2)' : 'brightness(0.8)',
+              filter: isPlaying ? 'brightness(1)' : 'brightness(0.8)',
             }}
           />
         </div>
