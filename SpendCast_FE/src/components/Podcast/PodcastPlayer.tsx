@@ -11,6 +11,7 @@ interface PodcastPlayerProps {
   audioUrl?: string;
   base64Audio?: string;
   className?: string;
+  isLoading?: boolean;
 }
 
 function PodcastPlayer({
@@ -22,6 +23,7 @@ function PodcastPlayer({
   audioUrl,
   base64Audio,
   className = '',
+  isLoading = false,
 }: PodcastPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -62,11 +64,28 @@ function PodcastPlayer({
       </div>
 
       <div className="w-full max-w-2xl">
-        <AudioPlayer
-          audioUrl={audioUrl}
-          base64Audio={base64Audio}
-          onPlayStateChange={setIsPlaying}
-        />
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="flex space-x-2 mb-4">
+              <div className="w-3 h-3 bg-brand-secondary rounded-full animate-bounce"></div>
+              <div
+                className="w-3 h-3 bg-brand-secondary rounded-full animate-bounce"
+                style={{ animationDelay: '0.1s' }}
+              ></div>
+              <div
+                className="w-3 h-3 bg-brand-secondary rounded-full animate-bounce"
+                style={{ animationDelay: '0.2s' }}
+              ></div>
+            </div>
+            <p className="text-gray-400 text-sm">Generating your podcast...</p>
+          </div>
+        ) : (
+          <AudioPlayer
+            audioUrl={audioUrl}
+            base64Audio={base64Audio}
+            onPlayStateChange={setIsPlaying}
+          />
+        )}
       </div>
     </div>
   );

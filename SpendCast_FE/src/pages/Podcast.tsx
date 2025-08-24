@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PodcastPlayer from '../components/Podcast/PodcastPlayer';
 import PodcastList from '@/components/Podcast/PodcastList';
 import podcastAnimation from '../assets/podcast.json';
+import { usePodcastResponse } from '@/hooks/usePodcastResponse';
 
 interface Podcast {
   id: string;
@@ -16,6 +17,11 @@ interface Podcast {
 
 function Podcast() {
   const [selectedPodcast, setSelectedPodcast] = useState<Podcast | null>(null);
+  const [generatedAudio, setGeneratedAudio] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { generatePodcast } = usePodcastResponse();
 
   const podcasts: Podcast[] = [
     {
@@ -28,9 +34,22 @@ function Podcast() {
     },
   ];
 
-  const handlePodcastSelect = (podcast: Podcast) => {
+  const handlePodcastSelect = async (podcast: Podcast) => {
     if (!podcast.isComingSoon) {
       setSelectedPodcast(podcast);
+      setIsGenerating(true);
+      setError(null);
+
+      try {
+        const audioContent = await generatePodcast();
+        setGeneratedAudio(audioContent);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to generate podcast'
+        );
+      } finally {
+        setIsGenerating(false);
+      }
     }
   };
 
@@ -47,17 +66,38 @@ function Podcast() {
 
             <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
               {selectedPodcast ? (
-                <PodcastPlayer
-                  animationData={
-                    selectedPodcast.animationData || podcastAnimation
-                  }
-                  title="Ready to Listen"
-                  description={`Generate your ${selectedPodcast.title.toLowerCase()}`}
-                  playingTitle="Now Playing"
-                  playingDescription={selectedPodcast.description}
-                  audioUrl={selectedPodcast.audioUrl}
-                  className="h-full"
-                />
+                <>
+                  {error && (
+                    <div className="text-center mb-4">
+                      <p className="text-red-400 text-sm">{error}</p>
+                      <button
+                        onClick={() => setSelectedPodcast(null)}
+                        className="mt-2 text-blue-400 hover:text-blue-300 text-sm"
+                      >
+                        Back to Podcasts
+                      </button>
+                    </div>
+                  )}
+                  <PodcastPlayer
+                    animationData={
+                      selectedPodcast.animationData || podcastAnimation
+                    }
+                    title={
+                      isGenerating ? 'Generating Podcast...' : 'Ready to Listen'
+                    }
+                    description={
+                      isGenerating
+                        ? 'Please wait while we create your personalized podcast'
+                        : `Your ${selectedPodcast.title.toLowerCase()} is ready`
+                    }
+                    playingTitle="Now Playing"
+                    playingDescription={selectedPodcast.description}
+                    audioUrl={selectedPodcast.audioUrl}
+                    base64Audio={generatedAudio}
+                    className="h-full"
+                    isLoading={isGenerating}
+                  />
+                </>
               ) : (
                 <PodcastList
                   podcasts={podcasts}
