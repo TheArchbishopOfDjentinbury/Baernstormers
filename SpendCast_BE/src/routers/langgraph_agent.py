@@ -172,6 +172,43 @@ SELECT (SUM(?amount) AS ?total_spent) WHERE {
   FILTER(?date >= "2025-01-01"^^xsd:date && ?date <= "2025-01-31"^^xsd:date)
 }
 ```
+
+This sample shows how to relate a transaction id with a receipt id. The receipts include lists of purchased items.
+```graphql
+from receipt find lineitem:PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX sc: <https://static.rwpz.net/spendcast/schema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?receipt ?receiptDate ?receiptTime ?lineItem ?product ?productName ?quantity ?priceAmount ?priceValue ?currency ?totalAmount ?totalValue
+WHERE {
+  # Select the specific Migros receipt
+  VALUES ?receipt { <https://static.rwpz.net/spendcast/receipt/Receipt_20240703_183347_0033140_001_768_2024_07_03_receipt> }
+  
+  ?receipt rdf:type sc:Receipt .
+  ?receipt sc:receiptDate ?receiptDate .
+  ?receipt sc:receiptTime ?receiptTime .
+  
+  # Get total amount
+  OPTIONAL {
+    ?receipt sc:hasTotalAmount ?totalAmount .
+    ?totalAmount sc:hasNumericValue ?totalValue .
+    ?totalAmount sc:hasCurrency ?totalCurrency .
+    ?totalCurrency rdfs:label ?currency .
+  }
+  
+  # Get line items
+  ?receipt sc:hasLineItem ?lineItem .
+  ?lineItem sc:hasProduct ?product .
+  ?product rdfs:label ?productName .
+  
+  OPTIONAL { ?lineItem sc:quantity ?quantity }
+  OPTIONAL { 
+    ?lineItem sc:hasPrice ?priceAmount .
+    ?priceAmount sc:hasNumericValue ?priceValue .
+  }
+}
+ORDER BY ?lineItem
+```
 """
 
 
