@@ -49,10 +49,6 @@ class ChatResponse(BaseModel):
     audio_content: Optional[str] = None
 
 
-class PodcastRequest(BaseModel):
-    pass
-
-
 class PodcastResponse(BaseModel):
     response: str  # Base64 encoded audo of the podcast
     success: bool
@@ -284,7 +280,7 @@ async def chat_with_agent(request: ChatRequest):
 
 
 @router.get("/podcast", response_model=PodcastResponse)
-async def generate_podcast(request: PodcastRequest):
+async def generate_podcast():
     podcast_prompt = """You are tasked to generate a podcast for the user about their finances
     during the current year (2025). The podcast should last between 3 and 5 minutes when reading
     it outloud. You should cover the following topics (not required to cover them in order):
