@@ -14,7 +14,6 @@ import Podcast from './pages/Podcast';
 function App() {
   const [hasCompletedQuiz, setHasCompletedQuiz] = useState(false);
 
-  // Start with July, switch to August after quiz completion
   const currentMonth = hasCompletedQuiz ? '2024-08' : '2024-07';
 
   const handleQuizCompletion = () => {
@@ -24,12 +23,10 @@ function App() {
   return (
     <Router>
       <div className="h-screen bg-white flex flex-col overflow-hidden">
-        {/* Fixed Header */}
         <div className="flex-shrink-0">
           <Header />
         </div>
 
-        {/* Main Content Area */}
         <div className="flex-1 overflow-hidden">
           <Routes>
             <Route path="/" element={<Navigate to="/chat" replace />} />

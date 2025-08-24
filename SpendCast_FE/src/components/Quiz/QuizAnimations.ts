@@ -1,4 +1,3 @@
-// Animation styles for Quiz components
 export const animationStyles = `
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }

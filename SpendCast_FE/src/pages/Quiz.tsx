@@ -43,7 +43,6 @@ export default function Quiz({ onQuizComplete }: QuizProps) {
       };
     });
 
-    // Scroll to next button after answer is selected
     setTimeout(() => {
       const nextButton = document.querySelector('.next-button-container');
       if (nextButton) {
@@ -52,13 +51,12 @@ export default function Quiz({ onQuizComplete }: QuizProps) {
           block: 'center',
         });
       }
-    }, 500); // Delay to let explanation animate in
+    }, 500);
   };
 
   const handleNextQuestion = () => {
     setQuizState((prev) => ({ ...prev, isTransitioning: true }));
 
-    // Fade out current question
     setTimeout(() => {
       if (quizState.currentQuestion < quizQuestions.length - 1) {
         setQuizState((prev) => ({
@@ -69,13 +67,11 @@ export default function Quiz({ onQuizComplete }: QuizProps) {
         }));
       } else {
         setQuizState((prev) => ({ ...prev, showResult: true }));
-        // Call onQuizComplete when quiz is finished
         if (onQuizComplete) {
           onQuizComplete();
         }
       }
 
-      // Fade in new question
       setTimeout(() => {
         setQuizState((prev) => ({ ...prev, isTransitioning: false }));
       }, 50);

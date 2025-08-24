@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import PodcastPlayer from '../components/PodcastPlayer';
-import PodcastList from '../components/PodcastList';
+import PodcastPlayer from '../components/Podcast/PodcastPlayer';
+import PodcastList from '@/components/Podcast/PodcastList';
 import podcastAnimation from '../assets/podcast.json';
 
 interface Podcast {
@@ -10,14 +10,13 @@ interface Podcast {
   duration?: string;
   image?: string;
   isComingSoon?: boolean;
-  animationData?: object;
+  animationData?: unknown;
   audioUrl?: string;
 }
 
 function Podcast() {
   const [selectedPodcast, setSelectedPodcast] = useState<Podcast | null>(null);
 
-  // Available podcasts data
   const podcasts: Podcast[] = [
     {
       id: 'yearly',
@@ -40,14 +39,12 @@ function Podcast() {
       <div className="min-h-full">
         <main className="px-4 py-8 pb-24">
           <div className="max-w-6xl mx-auto">
-            {/* Header */}
             <div className="text-center py-6">
               <p className="text-gray-300 text-lg">
                 Discover insights through audio stories
               </p>
             </div>
 
-            {/* Main content area */}
             <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
               {selectedPodcast ? (
                 <PodcastPlayer

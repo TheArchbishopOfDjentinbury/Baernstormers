@@ -1,4 +1,3 @@
-
 export type Metrics = {
   coffeeSpend: number;
   healthyFoodSpend: number;
@@ -6,10 +5,10 @@ export type Metrics = {
   publictransportSpend: number;
   fuelSpend: number;
   transportSpend: number;
-  swissMadeSpend: number;      // now CHF spent, not item count
-  nonswissMadeSpend: number;   // likewise
+  swissMadeSpend: number;
+  nonswissMadeSpend: number;
   mediaSubscription: number;
-  totalSpend: number;          // change from totalItemCount to totalSpend
+  totalSpend: number;
   alcoholSpend: number;
   alcoholMonthlyLimit: number;
   consecutiveMonthsUnderBudget: number;
@@ -18,5 +17,5 @@ export type Metrics = {
 export type SpendRow = {
   category?: string;
   monthISO: string;
-  amount?: string;   // e.g., "CHF 120.50"
+  amount?: string;
 };

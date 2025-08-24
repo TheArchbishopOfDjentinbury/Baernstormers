@@ -4,7 +4,6 @@ import Navigation from './Navigation';
 const Header: React.FC = () => {
   return (
     <header className="bg-brand-primary w-full">
-      {/* Title Section */}
       <div className="px-4 py-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-brand-secondary text-center">
@@ -13,7 +12,6 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Section */}
       <Navigation />
     </header>
   );

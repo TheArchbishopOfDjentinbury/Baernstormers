@@ -15,5 +15,5 @@ export interface ChatResponse {
   response: string;
   success: boolean;
   error?: string;
-  audio_content?: string; // Base64 audio
+  audio_content?: string;
 }

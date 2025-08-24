@@ -13,14 +13,12 @@ const Achievement = ({
   size = 'md',
   unlocked = false,
 }: AchievementProps) => {
-  // Color schemes for different achievement types
   const colorSchemes = {
-    good: unlocked ? '#10B981' : '#D1FAE5', // Green
-    medium: unlocked ? '#F59E0B' : '#FEF3C7', // Orange
-    bad: unlocked ? '#EF4444' : '#FEE2E2', // Red
+    good: unlocked ? '#10B981' : '#D1FAE5',
+    medium: unlocked ? '#F59E0B' : '#FEF3C7',
+    bad: unlocked ? '#EF4444' : '#FEE2E2',
   };
 
-  // Size configurations
   const sizes = {
     sm: { height: '60px', width: '60px', padding: '8px' },
     md: { height: '80px', width: '80px', padding: '10px' },

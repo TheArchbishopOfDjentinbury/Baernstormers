@@ -1,12 +1,12 @@
-import Achievement from '@/components/Achievement';
+import Achievement from '@/components/Achievements/Achievement';
 import { useState, useEffect, useMemo } from 'react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { buildMetrics } from '@/components/achievements/metricfromData';
-import type { Metrics } from '@/components/achievements/type';
+import { buildMetrics } from '@/components/Achievements/metricfromData';
+import type { Metrics } from '@/components/Achievements/type';
 import Footer from '@/components/Footer';
 
 // Import Lottie animations
@@ -17,7 +17,7 @@ import swissAnimation from '@/assets/swiss.json';
 import beerAnimation from '@/assets/beer.json';
 import moneyAnimation from '@/assets/money.json';
 
-import { ShinyLedFrame } from '@/components/achievements/shiny-buttons';
+import { ShinyLedFrame } from '@/components/ui/shiny-buttons';
 
 type AchievementCalc = {
   id: number;
@@ -41,10 +41,9 @@ const ACHIEVEMENTS: AchievementCalc[] = [
     type: 'good',
     category: 'Spending Habits',
     compute: (m) => {
-      // If your Metrics uses coffeeSpendThisMonth, keep that name.
       const spend = m.coffeeSpend;
       const ratio = clamp01(spend / 100);
-      const p = (1 - ratio) * 100; // inverse progress
+      const p = (1 - ratio) * 100;
       return { progress: Math.round(p), unlocked: spend === 0 };
     },
   },
@@ -73,7 +72,7 @@ const ACHIEVEMENTS: AchievementCalc[] = [
     type: 'bad',
     category: 'Budget Alert',
     compute: (m) => {
-      const transportBudget = 200; // TODO: from settings
+      const transportBudget = 200;
       const ratio =
         transportBudget > 0 ? m.transportSpend / transportBudget : 0;
       const p = clamp01(ratio) * 100;
@@ -104,9 +103,8 @@ const ACHIEVEMENTS: AchievementCalc[] = [
     type: 'medium',
     category: 'Entertainment',
     compute: (m) => {
-      const alcoholBudget = 100; // or m.alcoholMonthlyLimit
+      const alcoholBudget = 100;
       const ratio = alcoholBudget > 0 ? m.alcoholSpend / alcoholBudget : 0;
-      // 100 at/below limit; drops to 0 at 2x limit
       const p = (1 - clamp01((ratio - 1) / 1)) * 100;
       return { progress: Math.round(p), unlocked: ratio <= 1.0 };
     },
@@ -129,7 +127,7 @@ const ACHIEVEMENTS: AchievementCalc[] = [
 ];
 
 type Props = {
-  selectedMonth?: string; // Format: "2024-07"
+  selectedMonth?: string;
 };
 
 function Achievements({ selectedMonth }: Props) {
@@ -137,7 +135,6 @@ function Achievements({ selectedMonth }: Props) {
 
   useEffect(() => setAnimationsLoaded(true), []);
 
-  // Build metrics for the selected month
   const metrics = useMemo(() => buildMetrics(selectedMonth), [selectedMonth]);
 
   const computed = useMemo(
@@ -149,7 +146,6 @@ function Achievements({ selectedMonth }: Props) {
     [metrics]
   );
 
-  // Get month label for display
   const monthLabel = useMemo(() => {
     const date = new Date(selectedMonth + '-01');
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
@@ -168,7 +164,6 @@ function Achievements({ selectedMonth }: Props) {
               spending habits
             </p>
 
-            {/* Current Month Display */}
             <div className="mt-2">
               <span className="text-sm text-brand-secondary/60">
                 Showing achievements for:{' '}
@@ -176,7 +171,6 @@ function Achievements({ selectedMonth }: Props) {
               </span>
             </div>
 
-            {/* Special notification for August achievements */}
             {selectedMonth === '2024-08' && (
               <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-2 text-green-700">

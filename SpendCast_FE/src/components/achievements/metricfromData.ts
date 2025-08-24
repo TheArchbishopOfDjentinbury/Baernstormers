@@ -4,9 +4,8 @@ import transportData from '../../../../data-extraction/output/transport_spend.js
 import swissData from '../../../../data-extraction/output/swiss_made_spend.json';
 import mediaData from '../../../../data-extraction/output/media_subscriptions_spend.json';
 import alcoholData from '../../../../data-extraction/output/alcohol_spend.json';
-import type { Metrics, SpendRow } from './type';
+import type { Metrics, SpendRow } from '@/components/Achievements/type';
 
-// --- helpers ---
 const parseChf = (s?: string) =>
   s ? parseFloat(s.replace('CHF', '').trim()) : 0;
 
@@ -23,20 +22,15 @@ function sumAmount(
   return sum(filtered.map((r) => parseChf(r.amount)));
 }
 
-// --- main builder ---
-// Prefer passing isoMonth in from the page; fallback to the current month.
 export function buildMetrics(isoMonth?: string): Metrics {
-  // Use provided isoMonth or fallback to current month
   const month = isoMonth || new Date().toISOString().slice(0, 7); // Format: "2024-07"
 
-  // Coffee
   const coffeeSpend = sumAmount(
     coffeeData as SpendRow[],
     month,
     (r) => r.category === 'coffee'
   );
 
-  // Food
   const healthyFoodSpend = sumAmount(
     foodData as SpendRow[],
     month,
@@ -48,7 +42,6 @@ export function buildMetrics(isoMonth?: string): Metrics {
     (r) => r.category === 'unhealthy'
   );
 
-  // Transport
   const publictransportSpend = sumAmount(
     transportData as SpendRow[],
     month,
@@ -59,10 +52,8 @@ export function buildMetrics(isoMonth?: string): Metrics {
     month,
     (r) => r.category === 'fuel'
   );
-  // total transport = sum all categories for the month
   const transportSpend = sumAmount(transportData as SpendRow[], month);
 
-  // Swiss-made item counts
   const swissMadeSpend = sumAmount(
     swissData as SpendRow[],
     month,
@@ -74,10 +65,8 @@ export function buildMetrics(isoMonth?: string): Metrics {
     (r) => r.category === 'not Swiss-made'
   );
 
-  // Media subscriptions (looks like a count file, not CHF)
   const mediaSubscription = sumAmount(mediaData as SpendRow[], month);
 
-  // Alcohol
   const alcoholSpend = sumAmount(
     alcoholData as SpendRow[],
     month,
@@ -88,7 +77,6 @@ export function buildMetrics(isoMonth?: string): Metrics {
       r.category === 'spirits'
   );
 
-  // You can compute this from item data if you have it; placeholder for now
   const totalSpend = swissMadeSpend + nonswissMadeSpend;
 
   return {
@@ -103,7 +91,7 @@ export function buildMetrics(isoMonth?: string): Metrics {
     mediaSubscription,
     totalSpend,
     alcoholSpend,
-    alcoholMonthlyLimit: 100, // tune or fetch from user settings
-    consecutiveMonthsUnderBudget: 2, // compute if you track history
+    alcoholMonthlyLimit: 100,
+    consecutiveMonthsUnderBudget: 2,
   };
 }

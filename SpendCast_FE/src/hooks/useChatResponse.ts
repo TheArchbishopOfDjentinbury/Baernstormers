@@ -7,7 +7,7 @@ export interface ChatMessage {
   sender: 'user' | 'bot';
   timestamp: Date;
   type: 'text' | 'voice';
-  audioContent?: string; // Base64 audio content for playback
+  audioContent?: string;
 }
 
 export interface UseChatResponseReturn {
@@ -37,7 +37,6 @@ export const useChatResponse = (
 
         console.log('🚀 Sending request to:', url);
 
-        // Специальные логи для голосовых сообщений
         if (request.include_audio) {
           const messageSizeKB = (request.message.length / 1024).toFixed(2);
           const messageSizeMB = (
@@ -59,9 +58,7 @@ export const useChatResponse = (
               request.message.length > 1000,
           });
 
-          // Предупреждение о больших файлах
           if (request.message.length > 5 * 1024 * 1024) {
-            // 5MB
             console.warn(
               '⚠️ Large audio file detected! Size:',
               messageSizeMB,
@@ -90,7 +87,6 @@ export const useChatResponse = (
         console.log('📡 Response status:', response.status);
 
         if (!response.ok) {
-          // Попытаемся получить детали ошибки от сервера
           let errorDetails = '';
           try {
             const errorText = await response.text();
@@ -108,12 +104,10 @@ export const useChatResponse = (
         const jsonResponse: ChatResponse = await response.json();
         console.log('📄 Chat Response:', jsonResponse);
 
-        // Check if the response was successful
         if (!jsonResponse.success) {
           throw new Error(jsonResponse.error || 'Unknown error from server');
         }
 
-        // Create the chat message
         const finalMessage: ChatMessage = {
           id: messageId,
           text: jsonResponse.response,
@@ -141,7 +135,6 @@ export const useChatResponse = (
     async (message: string, includeAudio = false, responseAsAudio = false) => {
       const messageId = Date.now().toString();
 
-      // Детальные логи для голосовых сообщений
       if (includeAudio) {
         console.log('🚀 useChatResponse: Preparing voice message request:', {
           messageId,

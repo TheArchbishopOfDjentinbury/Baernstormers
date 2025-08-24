@@ -1,6 +1,6 @@
 import { Play } from 'lucide-react';
 import Lottie from 'lottie-react';
-import podcastCardAnimation from '../assets/podcast_card_1.json';
+import podcastCardAnimation from '../../assets/podcast_card_1.json';
 
 interface PodcastCardProps {
   title: string;
@@ -25,14 +25,12 @@ function PodcastCard({
       `}
       onClick={!isComingSoon ? onClick : undefined}
     >
-      {/* Coming Soon Badge */}
       {isComingSoon && (
         <div className="absolute top-3 right-3 bg-yellow-500/80 text-black text-xs px-2 py-1 rounded-full font-semibold">
           Coming Soon
         </div>
       )}
 
-      {/* Large Lottie Animation */}
       <div className="relative flex-1 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-lg flex items-center justify-center overflow-hidden mb-3">
         {image ? (
           <img
@@ -42,7 +40,6 @@ function PodcastCard({
           />
         ) : (
           <div className="relative w-full h-full flex items-center justify-center">
-            {/* Lottie Animation - Full Size */}
             <Lottie
               animationData={podcastCardAnimation}
               loop={true}
@@ -52,7 +49,6 @@ function PodcastCard({
                 height: '100%',
               }}
             />
-            {/* Subtle Play icon overlay */}
             <div className="absolute bottom-3 right-3">
               <div className="bg-black/40 backdrop-blur-sm rounded-full p-2">
                 <Play size={18} className="text-white/90" fill="currentColor" />
@@ -62,14 +58,12 @@ function PodcastCard({
         )}
       </div>
 
-      {/* Minimal Content - Only Title */}
       <div className="relative z-10 text-center">
         <h3 className="text-lg font-semibold text-white line-clamp-2">
           {title}
         </h3>
       </div>
 
-      {/* Hover Effect */}
       {!isComingSoon && (
         <div className="absolute inset-0 bg-gradient-to-t from-green-400/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-xl" />
       )}

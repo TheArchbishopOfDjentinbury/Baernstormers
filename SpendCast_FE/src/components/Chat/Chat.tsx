@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Send, Mic, MicOff } from 'lucide-react';
-import ChatLoader from '@/components/ChatLoader';
+import ChatLoader from '@/components/Chat/ChatLoader';
 import AudioPlayer from '@/components/AudioPlayer';
 import { WebMAudioRecorder, audioUtils } from '@/utils/audioRecorder';
 import { useChatResponse, type ChatMessage } from '@/hooks/useChatResponse';
@@ -14,7 +14,7 @@ interface Message {
   sender: 'user' | 'bot';
   timestamp: Date;
   type: 'text' | 'voice';
-  audioContent?: string; // Base64 audio for playback
+  audioContent?: string;
 }
 
 const Chat: React.FC = () => {
@@ -27,20 +27,15 @@ const Chat: React.FC = () => {
   const mp3RecorderRef = useRef<WebMAudioRecorder | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Random GIF selection
   const gifs = ['crying_1.gif', 'crying_2.gif', 'crying_3.gif'];
   const [randomGif] = useState(
     () => gifs[Math.floor(Math.random() * gifs.length)]
   );
 
-  // Chat response hook
   const { sendMessage: sendChatMessage } = useChatResponse(
-    // onMessageComplete - called when response is received
     (chatMessage: ChatMessage) => {
-      // Hide loader when response arrives
       setIsWaitingForResponse(false);
 
-      // Convert ChatMessage to local Message format
       const message: Message = {
         id: chatMessage.id,
         text: chatMessage.text,
@@ -52,9 +47,7 @@ const Chat: React.FC = () => {
 
       setMessages((prev) => [...prev, message]);
     },
-    // onError - called on error
     (error: string) => {
-      // Hide loader on error
       setIsWaitingForResponse(false);
 
       const errorMessage: Message = {
@@ -68,7 +61,6 @@ const Chat: React.FC = () => {
     }
   );
 
-  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -77,7 +69,6 @@ const Chat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Cleanup on unmount only
   useEffect(() => {
     return () => {
       if (mp3RecorderRef.current) {
@@ -101,13 +92,9 @@ const Chat: React.FC = () => {
     e.preventDefault();
     if (message.trim() && !isWaitingForResponse) {
       const messageText = message.trim();
-      // Add user message immediately
       addUserMessage(messageText);
-      // Clear input
       setMessage('');
-      // Show loader
       setIsWaitingForResponse(true);
-      // Send to backend with responseAsAudio flag
       await sendChatMessage(messageText, false, responseAsAudio);
     }
   };
@@ -123,16 +110,13 @@ const Chat: React.FC = () => {
     try {
       setRecordingError(null);
 
-      // Check browser support
       if (!audioUtils.checkSupport()) {
         throw new Error('Audio recording not supported');
       }
 
-      // Create MP3 recorder
       const recorder = new WebMAudioRecorder();
       mp3RecorderRef.current = recorder;
 
-      // Start MP3 recording
       await recorder.startRecording();
       setIsRecording(true);
     } catch (error) {
@@ -149,10 +133,8 @@ const Chat: React.FC = () => {
 
       setIsRecording(false);
 
-      // Stop recording and get MP3 blob
       const mp3Blob = await mp3RecorderRef.current.stopRecording();
 
-      // Convert to Base64
       const base64Audio = await audioUtils.toBase64(mp3Blob);
 
       console.log('🎤 MP3 recorded:', {
@@ -175,14 +157,11 @@ const Chat: React.FC = () => {
         fullAudioLength: base64Audio.length,
       });
 
-      // Add placeholder message for user
       addUserMessage('🎤 Voice message (MP3)', 'voice');
 
-      // Show loader
       setIsWaitingForResponse(true);
 
-      // Send Base64 audio using unified sendMessage with flags
-      await sendChatMessage(base64Audio, true, responseAsAudio); // includeAudio=true, use current responseAsAudio setting
+      await sendChatMessage(base64Audio, true, responseAsAudio);
     } catch (error) {
       console.error('Error processing MP3 audio:', error);
       setRecordingError('Failed to process recording');
@@ -215,24 +194,20 @@ const Chat: React.FC = () => {
   };
 
   const handleExampleClick = (exampleText: string) => {
-    // Remove quotes from the example text and set it in the input
     const cleanText = exampleText.replace(/"/g, '');
     setMessage(cleanText);
   };
 
   return (
     <>
-      {/* Scrollable Messages area - with bottom padding for fixed input */}
       <div className="h-full overflow-y-auto p-4 pb-32">
         <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 ? (
             <div className="text-center py-8 px-4">
-              {/* Welcome title first */}
               <h3 className="text-xl font-semibold text-brand-secondary mb-6">
                 Let's talk about your spending!
               </h3>
 
-              {/* Random GIF - full width */}
               <div className="mb-6">
                 <img
                   src={`/${randomGif}`}
@@ -241,7 +216,6 @@ const Chat: React.FC = () => {
                 />
               </div>
 
-              {/* Description and examples */}
               <div className="space-y-4">
                 <p className="text-brand-secondary/70 text-base max-w-md mx-auto">
                   I'm here to help you understand your spending habits. Ask me
@@ -287,7 +261,6 @@ const Chat: React.FC = () => {
                   >
                     <p className="text-base">{msg.text}</p>
 
-                    {/* Audio Player for voice responses */}
                     {msg.audioContent && (
                       <div className="mt-2">
                         <AudioPlayer
@@ -306,26 +279,21 @@ const Chat: React.FC = () => {
                 </div>
               ))}
 
-              {/* Chat Loader */}
               {isWaitingForResponse && <ChatLoader className="mb-4" />}
 
-              {/* Invisible element to scroll to */}
               <div ref={messagesEndRef} />
             </div>
           )}
         </div>
       </div>
 
-      {/* Fixed chat input at bottom of viewport */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-brand-primary border-t border-brand-secondary/20 shadow-lg">
-        {/* Error message */}
         {recordingError && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 mx-4 rounded mb-2">
             {recordingError}
           </div>
         )}
 
-        {/* Audio Response Toggle */}
         <div className="bg-white px-4 py-3">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <span className="text-base text-gray-700">
@@ -338,9 +306,7 @@ const Chat: React.FC = () => {
           </div>
         </div>
 
-        {/* Chat input container */}
         <div className="bg-brand-primary border-t border-brand-secondary/20 shadow-lg">
-          {/* Recording indicator */}
           {isRecording && (
             <div className="flex items-center justify-center py-2 text-sm text-brand-secondary">
               <div className="flex space-x-1 mr-2">
@@ -358,11 +324,9 @@ const Chat: React.FC = () => {
             </div>
           )}
 
-          {/* Chat input area */}
           <div className="px-4 py-4 pb-safe-area-inset-bottom">
             <form onSubmit={handleSend} className="max-w-4xl mx-auto">
               <div className="flex items-end gap-3">
-                {/* Message input - LEFT (takes most space) */}
                 <div className="flex-1">
                   <Textarea
                     value={message}
@@ -385,7 +349,6 @@ const Chat: React.FC = () => {
                   />
                 </div>
 
-                {/* Send/Mic button - RIGHT */}
                 <Button
                   type="button"
                   onClick={handleRightButton}
@@ -393,10 +356,10 @@ const Chat: React.FC = () => {
                   className="shrink-0 rounded-xl h-12 w-12 shadow-sm transition-all duration-200 hover:shadow-md"
                   style={{
                     background: message.trim()
-                      ? '#004b5a' // Dark teal for send
+                      ? '#004b5a'
                       : isRecording
-                      ? '#006b7a' // Lighter teal for recording
-                      : '#004b5a', // Dark teal for mic
+                      ? '#006b7a'
+                      : '#004b5a',
                   }}
                 >
                   {message.trim() ? (

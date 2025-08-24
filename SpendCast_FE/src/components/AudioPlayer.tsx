@@ -6,7 +6,7 @@ interface AudioPlayerProps {
   audioUrl?: string;
   base64Audio?: string;
   onPlayStateChange?: (isPlaying: boolean) => void;
-  minimal?: boolean; // For chat usage
+  minimal?: boolean;
 }
 
 const AudioPlayer = ({
@@ -22,7 +22,6 @@ const AudioPlayer = ({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.5);
 
-  // Convert base64 to blob
   const base64ToBlob = (
     base64: string,
     mimeType: string = 'audio/mp3'
@@ -39,7 +38,6 @@ const AudioPlayer = ({
   useEffect(() => {
     if (!waveformRef.current) return;
 
-    // Initialize WaveSurfer
     wavesurfer.current = WaveSurfer.create({
       container: waveformRef.current,
       waveColor: minimal ? '#6b7280' : '#4ade80',
@@ -53,19 +51,15 @@ const AudioPlayer = ({
       mediaControls: false,
     });
 
-    // Load audio if provided
     if (base64Audio) {
-      // Convert base64 to blob and load
       const audioBlob = base64ToBlob(base64Audio);
       wavesurfer.current.loadBlob(audioBlob);
     } else if (audioUrl) {
       wavesurfer.current.load(audioUrl);
     } else {
-      // Create a demo waveform for visualization
       wavesurfer.current.loadBlob(createDemoBlob());
     }
 
-    // Event listeners
     wavesurfer.current.on('play', () => {
       setIsPlaying(true);
       onPlayStateChange?.(true);
@@ -92,14 +86,13 @@ const AudioPlayer = ({
   }, [audioUrl, base64Audio, onPlayStateChange, minimal]);
 
   const createDemoBlob = () => {
-    // Create a simple audio buffer for demo purposes
     const AudioContextClass =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext })
         .webkitAudioContext;
     const audioContext = new AudioContextClass();
     const sampleRate = audioContext.sampleRate;
-    const duration = 30; // 30 seconds
+    const duration = 30;
     const buffer = audioContext.createBuffer(
       1,
       sampleRate * duration,
@@ -107,18 +100,15 @@ const AudioPlayer = ({
     );
     const data = buffer.getChannelData(0);
 
-    // Generate a simple sine wave with some variation
     for (let i = 0; i < data.length; i++) {
       const time = i / sampleRate;
       data[i] =
         Math.sin(440 * 2 * Math.PI * time) * 0.1 * (1 + Math.sin(time * 0.5));
     }
 
-    // Convert buffer to blob (this is a simplified approach)
     const arrayBuffer = new ArrayBuffer(44 + data.length * 2);
     const view = new DataView(arrayBuffer);
 
-    // WAV header
     const writeString = (offset: number, string: string) => {
       for (let i = 0; i < string.length; i++) {
         view.setUint8(offset + i, string.charCodeAt(i));
@@ -185,10 +175,8 @@ const AudioPlayer = ({
   if (minimal) {
     return (
       <div className="w-full bg-gray-50 rounded-lg p-2 border border-gray-200 mt-1">
-        {/* Compact waveform */}
         <div ref={waveformRef} className="mb-2" />
 
-        {/* Minimal inline controls */}
         <div className="flex items-center gap-2">
           <button
             onClick={togglePlayPause}
@@ -197,7 +185,6 @@ const AudioPlayer = ({
             {isPlaying ? <Pause size={14} /> : <Play size={14} />}
           </button>
 
-          {/* Time display - compact */}
           <div className="text-gray-500 text-xs font-mono">
             {formatTime(currentTime)} / {formatTime(duration)}
           </div>
@@ -208,10 +195,8 @@ const AudioPlayer = ({
 
   return (
     <div className="w-full bg-gray-900/90 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
-      {/* Waveform */}
       <div ref={waveformRef} className="mb-4" />
 
-      {/* Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button
@@ -238,12 +223,10 @@ const AudioPlayer = ({
           </button>
         </div>
 
-        {/* Time display */}
         <div className="text-white text-sm">
           {formatTime(currentTime)} / {formatTime(duration)}
         </div>
 
-        {/* Volume control */}
         <div className="flex items-center space-x-2">
           <Volume2 size={20} className="text-white" />
           <input

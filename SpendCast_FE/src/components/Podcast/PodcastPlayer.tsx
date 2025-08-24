@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import Lottie from 'lottie-react';
-import AudioPlayer from './AudioPlayer';
+import AudioPlayer from '../AudioPlayer';
 
 interface PodcastPlayerProps {
-  animationData: object; // Lottie animation JSON
+  animationData: object;
   title?: string;
   description?: string;
   playingTitle?: string;
@@ -29,7 +29,6 @@ function PodcastPlayer({
     <div
       className={`flex flex-col justify-center items-center space-y-8 ${className}`}
     >
-      {/* Lottie Animation */}
       <div className="relative">
         <div
           className={`transform transition-all duration-500 ${
@@ -48,13 +47,11 @@ function PodcastPlayer({
           />
         </div>
 
-        {/* Pulse effect when playing */}
         {isPlaying && (
           <div className="absolute inset-0 rounded-full border-4 border-green-400 animate-ping opacity-30" />
         )}
       </div>
 
-      {/* Podcast info */}
       <div className="text-center max-w-md">
         <h3 className="text-xl font-semibold text-white mb-2">
           {isPlaying ? playingTitle : title}
@@ -64,7 +61,6 @@ function PodcastPlayer({
         </p>
       </div>
 
-      {/* Audio Player */}
       <div className="w-full max-w-2xl">
         <AudioPlayer
           audioUrl={audioUrl}

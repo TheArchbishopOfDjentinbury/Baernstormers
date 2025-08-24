@@ -8,14 +8,12 @@ interface ChatLoaderProps {
 const ChatLoader: React.FC<ChatLoaderProps> = ({ className = '' }) => {
   const [messageIndex, setMessageIndex] = useState(0);
 
-  // Simple loading messages
   const loadingMessages = [
     'Looking for a smart person to answer...',
     'Analyzing your spending data...',
     'Thinking really hard...',
   ];
 
-  // Rotate messages every 5 seconds
   useEffect(() => {
     const messageInterval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
@@ -37,7 +35,6 @@ const ChatLoader: React.FC<ChatLoaderProps> = ({ className = '' }) => {
           ease: 'easeInOut',
         }}
       >
-        {/* Shimmer effect overlay */}
         <motion.div
           className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent"
           animate={{
@@ -50,7 +47,6 @@ const ChatLoader: React.FC<ChatLoaderProps> = ({ className = '' }) => {
           }}
         />
 
-        {/* Message text */}
         <motion.p
           className="text-base relative z-10"
           key={messageIndex}
