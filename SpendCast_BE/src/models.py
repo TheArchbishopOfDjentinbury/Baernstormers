@@ -118,6 +118,45 @@ class CustomerDetails(CustomerBase):
     updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
 
 
+# Customer API Models (for GraphDB integration)
+class CustomerBasic(BaseModel):
+    """Basic customer information model for API responses."""
+
+    name: str = Field(..., description="Full name of the customer")
+    email: Optional[str] = Field(None, description="Email address")
+    phone: Optional[str] = Field(None, description="Phone number")
+
+
+class CustomerDetailsAPI(BaseModel):
+    """Detailed customer information model for API responses."""
+
+    id: str = Field(..., description="Customer ID")
+    name: str = Field(..., description="Full name")
+    email: Optional[str] = Field(None, description="Email address")
+    phone: Optional[str] = Field(None, description="Phone number")
+    birth_date: Optional[str] = Field(None, description="Birth date")
+    citizenship: Optional[str] = Field(None, description="Citizenship")
+
+
+class CustomerAccount(BaseModel):
+    """Customer account summary model for API responses."""
+
+    account_id: str = Field(..., description="Account ID")
+    account_type: str = Field(..., description="Type of account")
+    balance: float = Field(..., description="Account balance")
+    currency: str = Field(..., description="Account currency")
+    iban: Optional[str] = Field(None, description="IBAN number")
+
+
+class CustomerSummary(BaseModel):
+    """Complete customer summary model for API responses."""
+
+    customer: CustomerDetailsAPI
+    accounts: List[CustomerAccount]
+    total_balance: float
+    account_count: int
+
+
 # Account Models
 class AccountBase(BaseModel):
     """Base account model."""
@@ -169,6 +208,56 @@ class AccountSummary(BaseModel):
     last_transaction_date: Optional[date] = Field(
         None, description="Date of last transaction"
     )
+
+
+# Account API Models (for GraphDB integration)
+class AccountBasic(BaseModel):
+    """Basic account information model for API responses."""
+
+    account_id: str = Field(..., description="Account number (primary identifier)")
+    account_number: str = Field(..., description="Account number")
+    account_type: str = Field(..., description="Type of account")
+    balance: float = Field(..., description="Current balance")
+    currency: str = Field(..., description="Account currency")
+    display_name: Optional[str] = Field(None, description="Account display name")
+
+
+class AccountDetailsAPI(BaseModel):
+    """Detailed account information model for API responses."""
+
+    account_id: str = Field(..., description="Account number (primary identifier)")
+    account_number: str = Field(..., description="Account number")
+    account_type: str = Field(..., description="Type of account")
+    balance: float = Field(..., description="Current balance")
+    currency: str = Field(..., description="Account currency")
+    display_name: Optional[str] = Field(None, description="Account display name")
+    iban: Optional[str] = Field(None, description="IBAN number")
+    account_purpose: Optional[str] = Field(None, description="Purpose of account")
+    overdraft_limit: Optional[float] = Field(None, description="Overdraft limit")
+    holder_name: Optional[str] = Field(None, description="Account holder name")
+    provider_name: Optional[str] = Field(None, description="Account provider name")
+    internal_id: Optional[str] = Field(None, description="Internal system ID")
+
+
+class AccountTransaction(BaseModel):
+    """Account transaction model for API responses."""
+
+    transaction_id: str = Field(..., description="Transaction ID")
+    amount: float = Field(..., description="Transaction amount")
+    date: str = Field(..., description="Transaction date")
+    status: str = Field(..., description="Transaction status")
+    transaction_type: Optional[str] = Field(None, description="Transaction type")
+    merchant: Optional[str] = Field(None, description="Merchant name")
+
+
+class AccountSummaryAPI(BaseModel):
+    """Account summary with transactions for API responses."""
+
+    account: AccountDetailsAPI
+    recent_transactions: List[AccountTransaction]
+    transaction_count: int
+    monthly_spending: float
+    monthly_income: float
 
 
 # Transaction Models
@@ -442,6 +531,141 @@ class SparqlResult(BaseModel):
     results: Dict[str, Any] = Field(..., description="Query results")
     execution_time: Optional[float] = Field(
         None, description="Query execution time in seconds"
+    )
+
+
+# Database Models
+class DatabaseStatus(BaseModel):
+    """Database connection status model."""
+
+    status: str = Field(..., description="Connection status")
+    database_type: str = Field(..., description="Type of database")
+    error: Optional[str] = Field(None, description="Error message if connection failed")
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional connection details")
+
+
+class DatabaseCheckResponse(BaseModel):
+    """Complete database check response model."""
+
+    overall_status: str = Field(..., description="Overall health status")
+    databases: List[DatabaseStatus] = Field(..., description="List of database statuses")
+    timestamp: str = Field(..., description="Check timestamp")
+
+
+# OpenFoodFacts Models
+class ProductSearchRequest(BaseModel):
+    """Product search request model."""
+
+    query: str = Field(..., min_length=2, description="Search query (product name, brand, category)")
+    page: int = Field(1, ge=1, description="Page number")
+    page_size: int = Field(10, ge=1, le=50, description="Number of results per page")
+
+
+class ProductAnalysisResponse(BaseModel):
+    """Product analysis response model."""
+
+    success: bool = Field(True, description="Request success status")
+    analysis: Optional[Dict[str, Any]] = Field(None, description="Nutritional analysis")
+    error: Optional[str] = Field(None, description="Error message if failed")
+
+
+class HealthyAlternativesRequest(BaseModel):
+    """Healthy alternatives request model."""
+
+    barcode: str = Field(..., description="Product barcode to find alternatives for")
+    criteria: str = Field("nutri_score", description="Criteria for healthier alternatives")
+
+
+class OpenFoodFactsBaseResponse(BaseModel):
+    """Base response model for OpenFoodFacts API."""
+
+    success: bool = Field(True, description="Request success status")
+    message: Optional[str] = Field(None, description="Response message")
+
+
+class ProductResponse(OpenFoodFactsBaseResponse):
+    """Single product response model."""
+
+    product: Optional[Any] = Field(None, description="Product data")  # OpenFoodFactsProduct type
+
+
+class SearchResponse(OpenFoodFactsBaseResponse):
+    """Product search response model."""
+
+    data: Any = Field(..., description="Search results")  # ProductSearchResult type
+
+
+class AlternativesResponse(OpenFoodFactsBaseResponse):
+    """Healthy alternatives response model."""
+
+    data: Any = Field(..., description="Alternative products")  # HealthyAlternativesResult type
+
+
+# Transaction API Models (for GraphDB integration)
+class TransactionBasic(BaseModel):
+    """Basic transaction information model for API responses."""
+
+    transaction_id: str = Field(..., description="Transaction ID")
+    amount: float = Field(..., description="Transaction amount")
+    date: str = Field(..., description="Transaction date")
+    status: str = Field(..., description="Transaction status")
+    transaction_type: Optional[str] = Field(None, description="Transaction type")
+
+
+class TransactionDetailsAPI(BaseModel):
+    """Detailed transaction information model for API responses."""
+
+    transaction_id: str = Field(..., description="Transaction ID")
+    amount: float = Field(..., description="Transaction amount")
+    currency: str = Field(..., description="Currency")
+    date: str = Field(..., description="Transaction date")
+    value_date: Optional[str] = Field(None, description="Value date")
+    status: str = Field(..., description="Transaction status")
+    transaction_type: Optional[str] = Field(None, description="Transaction type")
+    payer_name: Optional[str] = Field(None, description="Payer name")
+    payee_name: Optional[str] = Field(None, description="Payee name")
+    merchant: Optional[str] = Field(None, description="Merchant name")
+    receipt_id: Optional[str] = Field(None, description="Receipt ID")
+    has_receipt: bool = Field(False, description="Has receipt attached")
+
+
+class ReceiptItemAPI(BaseModel):
+    """Receipt line item model for API responses."""
+
+    item_description: str = Field(..., description="Item description")
+    quantity: int = Field(..., description="Quantity")
+    unit_price: float = Field(..., description="Unit price")
+    line_subtotal: float = Field(..., description="Line subtotal")
+    product_name: Optional[str] = Field(None, description="Product name")
+    category: Optional[str] = Field(None, description="Product category")
+
+
+class ReceiptDetailsAPI(BaseModel):
+    """Receipt details model for API responses."""
+
+    receipt_id: str = Field(..., description="Receipt ID")
+    total_amount: float = Field(..., description="Total amount")
+    receipt_date: str = Field(..., description="Receipt date")
+    receipt_time: Optional[str] = Field(None, description="Receipt time")
+    payment_method: Optional[str] = Field(None, description="Payment method")
+    merchant: Optional[str] = Field(None, description="Merchant name")
+    vat_number: Optional[str] = Field(None, description="VAT number")
+    items: List[ReceiptItemAPI] = Field(default_factory=list, description="Receipt items")
+
+
+class SpendingAnalyticsAPI(BaseModel):
+    """Spending analytics model for API responses."""
+
+    total_spending: float = Field(..., description="Total spending amount")
+    total_income: float = Field(..., description="Total income amount")
+    net_amount: float = Field(..., description="Net amount (income - spending)")
+    transaction_count: int = Field(..., description="Total transaction count")
+    average_transaction: float = Field(..., description="Average transaction amount")
+    top_categories: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Top spending categories"
+    )
+    top_merchants: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Top merchants"
     )
 
 

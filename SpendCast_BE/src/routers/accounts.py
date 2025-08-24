@@ -1,65 +1,16 @@
 """Account management API router using GraphDB SPARQL queries."""
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import logging
 import httpx
 
 from src.config import settings
+from src.models import AccountBasic, AccountDetailsAPI as AccountDetails, AccountTransaction, AccountSummaryAPI as AccountSummary
 
 router = APIRouter(prefix="/api/v1/accounts", tags=["accounts"])
 
 logger = logging.getLogger(__name__)
-
-
-class AccountBasic(BaseModel):
-    """Basic account information model."""
-
-    account_id: str = Field(..., description="Account number (primary identifier)")
-    account_number: str = Field(..., description="Account number")
-    account_type: str = Field(..., description="Type of account")
-    balance: float = Field(..., description="Current balance")
-    currency: str = Field(..., description="Account currency")
-    display_name: Optional[str] = Field(None, description="Account display name")
-
-
-class AccountDetails(BaseModel):
-    """Detailed account information model."""
-
-    account_id: str = Field(..., description="Account number (primary identifier)")
-    account_number: str = Field(..., description="Account number")
-    account_type: str = Field(..., description="Type of account")
-    balance: float = Field(..., description="Current balance")
-    currency: str = Field(..., description="Account currency")
-    display_name: Optional[str] = Field(None, description="Account display name")
-    iban: Optional[str] = Field(None, description="IBAN number")
-    account_purpose: Optional[str] = Field(None, description="Purpose of account")
-    overdraft_limit: Optional[float] = Field(None, description="Overdraft limit")
-    holder_name: Optional[str] = Field(None, description="Account holder name")
-    provider_name: Optional[str] = Field(None, description="Account provider name")
-    internal_id: Optional[str] = Field(None, description="Internal system ID")
-
-
-class AccountTransaction(BaseModel):
-    """Account transaction model."""
-
-    transaction_id: str = Field(..., description="Transaction ID")
-    amount: float = Field(..., description="Transaction amount")
-    date: str = Field(..., description="Transaction date")
-    status: str = Field(..., description="Transaction status")
-    transaction_type: Optional[str] = Field(None, description="Transaction type")
-    merchant: Optional[str] = Field(None, description="Merchant name")
-
-
-class AccountSummary(BaseModel):
-    """Account summary with transactions."""
-
-    account: AccountDetails
-    recent_transactions: List[AccountTransaction]
-    transaction_count: int
-    monthly_spending: float
-    monthly_income: float
 
 
 async def execute_sparql_query(query: str) -> Dict[str, Any]:

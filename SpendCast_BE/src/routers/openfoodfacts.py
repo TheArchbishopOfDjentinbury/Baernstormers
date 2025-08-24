@@ -1,7 +1,6 @@
 """Open Food Facts API router."""
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import logging
 
@@ -15,52 +14,18 @@ from src.crud.openfoodfacts import (
     HealthyAlternativesResult,
     ProductNutrition
 )
+from src.models import (
+    ProductSearchRequest,
+    ProductAnalysisResponse,
+    HealthyAlternativesRequest,
+    ProductResponse,
+    SearchResponse,
+    AlternativesResponse
+)
 
 router = APIRouter(prefix="/api/v1/openfoodfacts", tags=["Open Food Facts"])
 
 logger = logging.getLogger(__name__)
-
-
-# Request/Response Models
-class ProductSearchRequest(BaseModel):
-    """Product search request model."""
-    query: str = Field(..., min_length=2, description="Search query (product name, brand, category)")
-    page: int = Field(1, ge=1, description="Page number")
-    page_size: int = Field(10, ge=1, le=50, description="Number of results per page")
-
-
-class ProductAnalysisResponse(BaseModel):
-    """Product analysis response model."""
-    success: bool = Field(True, description="Request success status")
-    analysis: Optional[Dict[str, Any]] = Field(None, description="Nutritional analysis")
-    error: Optional[str] = Field(None, description="Error message if failed")
-
-
-class HealthyAlternativesRequest(BaseModel):
-    """Healthy alternatives request model."""
-    barcode: str = Field(..., description="Product barcode to find alternatives for")
-    criteria: str = Field("nutri_score", description="Criteria for healthier alternatives")
-
-
-class BaseResponse(BaseModel):
-    """Base response model."""
-    success: bool = Field(True, description="Request success status")
-    message: Optional[str] = Field(None, description="Response message")
-
-
-class ProductResponse(BaseResponse):
-    """Single product response model."""
-    product: Optional[OpenFoodFactsProduct] = Field(None, description="Product data")
-
-
-class SearchResponse(BaseResponse):
-    """Product search response model."""
-    data: ProductSearchResult = Field(..., description="Search results")
-
-
-class AlternativesResponse(BaseResponse):
-    """Healthy alternatives response model."""
-    data: HealthyAlternativesResult = Field(..., description="Alternative products")
 
 
 # Endpoints

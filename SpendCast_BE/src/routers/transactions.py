@@ -1,84 +1,23 @@
 """Transaction management and analytics API router using GraphDB SPARQL queries."""
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import logging
 import httpx
 from datetime import datetime, date
 
 from src.config import settings
+from src.models import (
+    TransactionBasic,
+    TransactionDetailsAPI as TransactionDetails,
+    ReceiptItemAPI as ReceiptItem,
+    ReceiptDetailsAPI as ReceiptDetails,
+    SpendingAnalyticsAPI as SpendingAnalytics
+)
 
 router = APIRouter(prefix="/api/v1/transactions", tags=["transactions"])
 
 logger = logging.getLogger(__name__)
-
-
-class TransactionBasic(BaseModel):
-    """Basic transaction information model."""
-
-    transaction_id: str = Field(..., description="Transaction ID")
-    amount: float = Field(..., description="Transaction amount")
-    date: str = Field(..., description="Transaction date")
-    status: str = Field(..., description="Transaction status")
-    transaction_type: Optional[str] = Field(None, description="Transaction type")
-
-
-class TransactionDetails(BaseModel):
-    """Detailed transaction information model."""
-
-    transaction_id: str = Field(..., description="Transaction ID")
-    amount: float = Field(..., description="Transaction amount")
-    currency: str = Field(..., description="Currency")
-    date: str = Field(..., description="Transaction date")
-    value_date: Optional[str] = Field(None, description="Value date")
-    status: str = Field(..., description="Transaction status")
-    transaction_type: Optional[str] = Field(None, description="Transaction type")
-    payer_name: Optional[str] = Field(None, description="Payer name")
-    payee_name: Optional[str] = Field(None, description="Payee name")
-    merchant: Optional[str] = Field(None, description="Merchant name")
-    receipt_id: Optional[str] = Field(None, description="Receipt ID")
-    has_receipt: bool = Field(False, description="Has receipt attached")
-
-
-class ReceiptItem(BaseModel):
-    """Receipt line item model."""
-
-    item_description: str = Field(..., description="Item description")
-    quantity: int = Field(..., description="Quantity")
-    unit_price: float = Field(..., description="Unit price")
-    line_subtotal: float = Field(..., description="Line subtotal")
-    product_name: Optional[str] = Field(None, description="Product name")
-    category: Optional[str] = Field(None, description="Product category")
-
-
-class ReceiptDetails(BaseModel):
-    """Receipt details model."""
-
-    receipt_id: str = Field(..., description="Receipt ID")
-    total_amount: float = Field(..., description="Total amount")
-    receipt_date: str = Field(..., description="Receipt date")
-    receipt_time: Optional[str] = Field(None, description="Receipt time")
-    payment_method: Optional[str] = Field(None, description="Payment method")
-    merchant: Optional[str] = Field(None, description="Merchant name")
-    vat_number: Optional[str] = Field(None, description="VAT number")
-    items: List[ReceiptItem] = Field(default_factory=list, description="Receipt items")
-
-
-class SpendingAnalytics(BaseModel):
-    """Spending analytics model."""
-
-    total_spending: float = Field(..., description="Total spending amount")
-    total_income: float = Field(..., description="Total income amount")
-    net_amount: float = Field(..., description="Net amount (income - spending)")
-    transaction_count: int = Field(..., description="Total transaction count")
-    average_transaction: float = Field(..., description="Average transaction amount")
-    top_categories: List[Dict[str, Any]] = Field(
-        default_factory=list, description="Top spending categories"
-    )
-    top_merchants: List[Dict[str, Any]] = Field(
-        default_factory=list, description="Top merchants"
-    )
 
 
 async def execute_sparql_query(query: str) -> Dict[str, Any]:
