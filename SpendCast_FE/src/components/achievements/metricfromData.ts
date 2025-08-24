@@ -26,33 +26,70 @@ function sumAmount(
 // --- main builder ---
 // Prefer passing isoMonth in from the page; fallback to the current month.
 export function buildMetrics(isoMonth?: string): Metrics {
-  const month = "2024-07";
+  // Use provided isoMonth or fallback to current month
+  const month = isoMonth || new Date().toISOString().slice(0, 7); // Format: "2024-07"
 
   // Coffee
-  const coffeeSpend = sumAmount(coffeeData as SpendRow[], month, (r) => r.category === 'coffee');
+  const coffeeSpend = sumAmount(
+    coffeeData as SpendRow[],
+    month,
+    (r) => r.category === 'coffee'
+  );
 
   // Food
-  const healthyFoodSpend = sumAmount(foodData as SpendRow[], month, (r) => r.category === 'healthy');
-  const unhealthyFoodSpend = sumAmount(foodData as SpendRow[], month, (r) => r.category === 'unhealthy');
+  const healthyFoodSpend = sumAmount(
+    foodData as SpendRow[],
+    month,
+    (r) => r.category === 'healthy'
+  );
+  const unhealthyFoodSpend = sumAmount(
+    foodData as SpendRow[],
+    month,
+    (r) => r.category === 'unhealthy'
+  );
 
   // Transport
-  const publictransportSpend = sumAmount(transportData as SpendRow[], month, (r) => r.category === 'public transport');
-  const fuelSpend = sumAmount(transportData as SpendRow[], month, (r) => r.category === 'fuel');
+  const publictransportSpend = sumAmount(
+    transportData as SpendRow[],
+    month,
+    (r) => r.category === 'public transport'
+  );
+  const fuelSpend = sumAmount(
+    transportData as SpendRow[],
+    month,
+    (r) => r.category === 'fuel'
+  );
   // total transport = sum all categories for the month
   const transportSpend = sumAmount(transportData as SpendRow[], month);
 
   // Swiss-made item counts
-  const swissMadeSpend = sumAmount(swissData as SpendRow[], month, (r) => r.category === 'Swiss-made');
-  const nonswissMadeSpend = sumAmount(swissData as SpendRow[], month, (r) => r.category === 'not Swiss-made');
+  const swissMadeSpend = sumAmount(
+    swissData as SpendRow[],
+    month,
+    (r) => r.category === 'Swiss-made'
+  );
+  const nonswissMadeSpend = sumAmount(
+    swissData as SpendRow[],
+    month,
+    (r) => r.category === 'not Swiss-made'
+  );
 
   // Media subscriptions (looks like a count file, not CHF)
   const mediaSubscription = sumAmount(mediaData as SpendRow[], month);
 
   // Alcohol
-  const alcoholSpend = sumAmount(alcoholData as SpendRow[], month, (r) => r.category === 'alcohol' || r.category === 'beer' || r.category === 'wine' || r.category === 'spirits');
+  const alcoholSpend = sumAmount(
+    alcoholData as SpendRow[],
+    month,
+    (r) =>
+      r.category === 'alcohol' ||
+      r.category === 'beer' ||
+      r.category === 'wine' ||
+      r.category === 'spirits'
+  );
 
   // You can compute this from item data if you have it; placeholder for now
-  const totalSpend= swissMadeSpend + nonswissMadeSpend;
+  const totalSpend = swissMadeSpend + nonswissMadeSpend;
 
   return {
     coffeeSpend,
@@ -66,7 +103,7 @@ export function buildMetrics(isoMonth?: string): Metrics {
     mediaSubscription,
     totalSpend,
     alcoholSpend,
-    alcoholMonthlyLimit: 100,      // tune or fetch from user settings
+    alcoholMonthlyLimit: 100, // tune or fetch from user settings
     consecutiveMonthsUnderBudget: 2, // compute if you track history
   };
 }

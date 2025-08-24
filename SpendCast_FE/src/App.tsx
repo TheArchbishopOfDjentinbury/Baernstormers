@@ -4,17 +4,23 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
+import { useState } from 'react';
 import Header from './components/Header';
 import Chat from './pages/Chat';
 import Achievements from './pages/Achievements';
 import Quiz from './pages/Quiz';
 import Podcast from './pages/Podcast';
-import { buildMetrics } from '@/components/achievements/metricfromData';
-import type { Metrics } from '@/components/achievements/type';
-
-const metrics = buildMetrics(); // now definitely defined
 
 function App() {
+  const [hasCompletedQuiz, setHasCompletedQuiz] = useState(false);
+
+  // Start with July, switch to August after quiz completion
+  const currentMonth = hasCompletedQuiz ? '2024-08' : '2024-07';
+
+  const handleQuizCompletion = () => {
+    setHasCompletedQuiz(true);
+  };
+
   return (
     <Router>
       <div className="h-screen bg-white flex flex-col overflow-hidden">
@@ -28,8 +34,14 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/chat" replace />} />
             <Route path="/chat" element={<Chat />} />
-            <Route path="/achievements" element={<Achievements metrics={metrics} />} />
-            <Route path="/quiz" element={<Quiz />} />
+            <Route
+              path="/achievements"
+              element={<Achievements selectedMonth={currentMonth} />}
+            />
+            <Route
+              path="/quiz"
+              element={<Quiz onQuizComplete={handleQuizCompletion} />}
+            />
             <Route path="/podcast" element={<Podcast />} />
           </Routes>
         </div>

@@ -13,9 +13,10 @@ const QuizResults = ({ score, totalQuestions }: QuizResultsProps) => {
 
   const getScoreMessage = () => {
     const percentage = (score / totalQuestions) * 100;
-    if (percentage >= 80) return "You truly understand your financial story! SpendCast sees a conscious consumer with amazing values!";
+    if (percentage >= 80)
+      return 'You truly understand your financial story! SpendCast sees a conscious consumer with amazing values!';
     if (percentage >= 60)
-      return 'Great insights! You\'re connecting with your spending patterns in a meaningful way!';
+      return "Great insights! You're connecting with your spending patterns in a meaningful way!";
     if (percentage >= 40)
       return 'Your financial journey is unique! SpendCast is here to help you discover more insights!';
     return 'Every financial story is worth telling! Let SpendCast help you uncover the patterns in your spending!';
@@ -25,7 +26,11 @@ const QuizResults = ({ score, totalQuestions }: QuizResultsProps) => {
     <main className="px-4 py-8 pb-24">
       <div className="max-w-2xl mx-auto text-center">
         <div className="mb-8 animate-fade-in">
-          <FontAwesomeIcon icon={faBrain} className="text-brand-primary mx-auto mb-8 animate-pulse-gentle" style={{width: '8rem', height: '8rem'}} />
+          <FontAwesomeIcon
+            icon={faBrain}
+            className="text-brand-primary mx-auto mb-8 animate-pulse-gentle"
+            style={{ width: '8rem', height: '8rem' }}
+          />
           <h2 className="text-3xl font-bold text-brand-secondary mb-4 animate-slide-up">
             Your Financial Story Revealed!
           </h2>
@@ -47,8 +52,12 @@ const QuizResults = ({ score, totalQuestions }: QuizResultsProps) => {
           onClick={() => navigate('/achievements')}
           className="bg-brand-primary text-brand-secondary hover:bg-brand-primary/90 px-8 py-3 animate-fade-in-delay-3 transform hover:scale-105 transition-all duration-200 shadow-md hover:shadow-lg"
         >
-          Go to Achievements
+          View August Achievements
         </Button>
+
+        <p className="text-sm text-brand-secondary/60 mt-4 animate-fade-in-delay-4">
+          🎉 New achievements unlocked for August 2024!
+        </p>
       </div>
     </main>
   );

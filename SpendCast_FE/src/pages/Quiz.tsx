@@ -11,7 +11,11 @@ import {
   type QuizState,
 } from '../components/Quiz';
 
-export default function Quiz() {
+interface QuizProps {
+  onQuizComplete?: () => void;
+}
+
+export default function Quiz({ onQuizComplete }: QuizProps) {
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: 0,
     selectedAnswer: null,
@@ -64,6 +68,10 @@ export default function Quiz() {
         }));
       } else {
         setQuizState((prev) => ({ ...prev, showResult: true }));
+        // Call onQuizComplete when quiz is finished
+        if (onQuizComplete) {
+          onQuizComplete();
+        }
       }
 
       // Fade in new question
