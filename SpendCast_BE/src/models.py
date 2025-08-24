@@ -601,6 +601,70 @@ class AlternativesResponse(OpenFoodFactsBaseResponse):
     data: Any = Field(..., description="Alternative products")  # HealthyAlternativesResult type
 
 
+# OpenFoodFacts CRUD Models
+class ProductNutrition(BaseModel):
+    """Nutritional information for a product."""
+
+    energy: Optional[float] = Field(None, description="Energy in kcal per 100g")
+    fat: Optional[float] = Field(None, description="Fat content per 100g")
+    saturated_fat: Optional[float] = Field(None, description="Saturated fat per 100g")
+    carbohydrates: Optional[float] = Field(None, description="Carbohydrates per 100g")
+    sugars: Optional[float] = Field(None, description="Sugars per 100g")
+    proteins: Optional[float] = Field(None, description="Proteins per 100g")
+    salt: Optional[float] = Field(None, description="Salt per 100g")
+    fiber: Optional[float] = Field(None, description="Fiber per 100g")
+
+
+class OpenFoodFactsProduct(BaseModel):
+    """Product information from Open Food Facts."""
+
+    id: str = Field(..., description="Product ID")
+    barcode: str = Field(..., description="Product barcode")
+    name: str = Field(..., description="Product name")
+    brands: Optional[str] = Field(None, description="Product brands")
+    ingredients: Optional[str] = Field(None, description="Ingredients list")
+    allergens: Optional[str] = Field(None, description="Allergen information")
+    nutri_score: Optional[str] = Field(None, description="Nutri-Score grade (A-E)")
+    nova_group: Optional[int] = Field(None, description="NOVA group (1-4)")
+    eco_score: Optional[str] = Field(None, description="Eco-Score grade (A-E)")
+    image_url: Optional[str] = Field(None, description="Product image URL")
+    nutrition_facts: Optional[ProductNutrition] = Field(None, description="Nutritional information")
+    labels: Optional[str] = Field(None, description="Product labels")
+    categories: Optional[str] = Field(None, description="Product categories")
+    countries: Optional[str] = Field(None, description="Available countries")
+
+
+class ProductSearchResult(BaseModel):
+    """Search result for products."""
+
+    products: List[OpenFoodFactsProduct] = Field(..., description="List of products")
+    total_found: int = Field(..., description="Total number of products found")
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Number of products per page")
+    query: str = Field(..., description="Search query used")
+
+
+class NutritionAnalysis(BaseModel):
+    """Nutrition analysis result."""
+
+    nutri_score_spending: Dict[str, float] = Field(..., description="Spending by Nutri-Score")
+    nova_group_spending: Dict[str, float] = Field(..., description="Spending by NOVA group")
+    eco_score_spending: Dict[str, float] = Field(..., description="Spending by Eco-Score")
+    total_amount: float = Field(..., description="Total amount analyzed")
+    analyzed_products: int = Field(..., description="Number of products analyzed")
+    products_with_nutrition_data: int = Field(..., description="Products with nutrition data")
+    recommendations: List[Dict[str, str]] = Field(..., description="Health recommendations")
+
+
+class HealthyAlternativesResult(BaseModel):
+    """Result for healthy alternatives search."""
+
+    original_product: Optional[OpenFoodFactsProduct] = Field(None, description="Original product")
+    alternatives: List[Dict[str, Any]] = Field(..., description="List of alternative products")
+    total_alternatives_found: int = Field(..., description="Number of alternatives found")
+    criteria_used: str = Field(..., description="Criteria used for comparison")
+
+
 # Transaction API Models (for GraphDB integration)
 class TransactionBasic(BaseModel):
     """Basic transaction information model for API responses."""

@@ -5,68 +5,16 @@ from typing import Dict, Any, List, Optional
 from urllib.parse import quote_plus
 
 import httpx
-from pydantic import BaseModel
+
+from src.models import (
+    ProductNutrition,
+    OpenFoodFactsProduct,
+    ProductSearchResult,
+    NutritionAnalysis,
+    HealthyAlternativesResult
+)
 
 logger = logging.getLogger(__name__)
-
-
-# Models
-class ProductNutrition(BaseModel):
-    """Nutritional information for a product."""
-    energy: Optional[float] = None
-    fat: Optional[float] = None
-    saturated_fat: Optional[float] = None
-    carbohydrates: Optional[float] = None
-    sugars: Optional[float] = None
-    proteins: Optional[float] = None
-    salt: Optional[float] = None
-    fiber: Optional[float] = None
-
-
-class OpenFoodFactsProduct(BaseModel):
-    """Product information from Open Food Facts."""
-    id: str
-    barcode: str
-    name: str
-    brands: Optional[str] = None
-    ingredients: Optional[str] = None
-    allergens: Optional[str] = None
-    nutri_score: Optional[str] = None
-    nova_group: Optional[int] = None
-    eco_score: Optional[str] = None
-    image_url: Optional[str] = None
-    nutrition_facts: Optional[ProductNutrition] = None
-    labels: Optional[str] = None
-    categories: Optional[str] = None
-    countries: Optional[str] = None
-
-
-class ProductSearchResult(BaseModel):
-    """Search result for products."""
-    products: List[OpenFoodFactsProduct]
-    total_found: int
-    page: int
-    page_size: int
-    query: str
-
-
-class NutritionAnalysis(BaseModel):
-    """Nutrition analysis result."""
-    nutri_score_spending: Dict[str, float]
-    nova_group_spending: Dict[str, float]
-    eco_score_spending: Dict[str, float]
-    total_amount: float
-    analyzed_products: int
-    products_with_nutrition_data: int
-    recommendations: List[Dict[str, str]]
-
-
-class HealthyAlternativesResult(BaseModel):
-    """Result for healthy alternatives search."""
-    original_product: OpenFoodFactsProduct
-    alternatives: List[Dict[str, Any]]
-    total_alternatives_found: int
-    criteria_used: str
 
 
 # CRUD Functions
