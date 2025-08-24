@@ -9,7 +9,7 @@ from typing import AsyncGenerator, Optional
 import openai
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
 from mcp import ClientSession
@@ -47,6 +47,15 @@ class ChatResponse(BaseModel):
     success: bool
     error: Optional[str] = None
     audio_content: Optional[str] = None
+
+
+class PodcastRequest(BaseModel):
+    pass
+
+
+class PodcastResponse(BaseModel):
+    response: str  # Base64 encoded audo of the podcast
+    success: bool
 
 
 preprompt = """You are a useful chat agent for PostFinance private clients.
@@ -166,6 +175,7 @@ SELECT (SUM(?amount) AS ?total_spent) WHERE {
   ?transaction exs:hasTransactionDate ?date .
   FILTER(?date >= "2025-01-01"^^xsd:date && ?date <= "2025-01-31"^^xsd:date)
 }
+```
 """
 
 
@@ -271,6 +281,51 @@ async def chat_with_agent(request: ChatRequest):
     except Exception as e:
         logger.error(f"Unexpected error in chat endpoint: {e}")
         return ChatResponse(response="", success=False, error=str(e))
+
+
+@router.get("/podcast", response_model=PodcastResponse)
+async def generate_podcast(request: PodcastRequest):
+    podcast_prompt = """You are tasked to generate a podcast for the user about their finances
+    during the current year (2025). The podcast should last between 3 and 5 minutes when reading
+    it outloud. You should cover the following topics (not required to cover them in order):
+        - The current balances of all of the accounts.
+        - The total spending in rent.
+        - The total spending in transport (car gas, public transport, ...).
+        - The total spending in food, and in which stores did you buy the most food.
+        - Mention the stores where the user bought last year (2024) but hasn't yet been in 2025.
+        - Given all the discussed above, generate some saving tips for the user and give a
+        comment on their economical situation.
+    The style of the podcast should be cheerful, and you should make some jokes along the way
+    to make it easier for the user to follow (especially swiss-related jokes).
+
+    If you make a query to the database and it fails, just try again without telling the user. If it fails again, just skip that part of the podcast. Do not mention any failures to the end user!
+    """
+    try:
+        async with stdio_client(server_params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                # Get tools
+                tools = await load_mcp_tools(session)
+                # Create and run the agent
+                agent = create_react_agent("openai:gpt-4.1", tools, prompt=preprompt)
+
+                # IMPORTANT: Keep the session alive during agent execution
+                agent_response = await agent.ainvoke(
+                    {"messages": [SystemMessage(content=podcast_prompt)]}
+                )
+
+                # Extract just the final message content for cleaner response
+                if messages := agent_response.get("messages"):
+                    final_message = messages[-1]
+                    if hasattr(final_message, "content"):
+                        podcast_text = final_message.content
+
+                audio_bytes = await generate_audio(podcast_text)
+                audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+                return PodcastResponse(response=audio_base64, success=True)
+    except Exception as e:
+        logger.error(f"Error calling agent: {e}")
+        raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
 
 
 async def stream_agent_response(message: str) -> AsyncGenerator[str, None]:
