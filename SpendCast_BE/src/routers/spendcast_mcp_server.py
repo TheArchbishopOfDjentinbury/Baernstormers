@@ -2,8 +2,11 @@ import asyncio
 import json
 import logging
 import os
+
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote_plus
+from datetime import datetime
+
 
 import httpx
 from dotenv import load_dotenv
@@ -28,6 +31,7 @@ class GraphDBConfig(BaseModel):
 # --- Open Food Facts Models ---
 class ProductNutrition(BaseModel):
     """Nutritional information for a product."""
+
     energy: Optional[float] = None
     fat: Optional[float] = None
     saturated_fat: Optional[float] = None
@@ -40,6 +44,7 @@ class ProductNutrition(BaseModel):
 
 class OpenFoodFactsProduct(BaseModel):
     """Product information from Open Food Facts."""
+
     id: str
     barcode: str
     name: str
@@ -88,6 +93,15 @@ async def _execute_sparql_impl(ctx: Context, query: str) -> Dict[str, Any]:
     :param query: The SPARQL query string to execute.
     :return: The JSON result from GraphDB or an error dictionary.
     """
+    log_file_path = "/tmp/debug.txt"
+    try:
+        with open(log_file_path, "a", encoding="utf-8") as f:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            log_entry = f"[{timestamp}] --- EXECUTING SPARQL QUERY ---\n{query}\n\n"
+            f.write(log_entry)
+    except IOError as e:
+        logging.error(f"Failed to write to log file {log_file_path}: {e}")
+
     config = get_config()
     logging.info(f"Executing SPARQL query on {config.url}")
 
@@ -122,23 +136,23 @@ async def _execute_sparql_impl(ctx: Context, query: str) -> Dict[str, Any]:
 async def _fetch_openfoodfacts_product(barcode: str) -> Optional[OpenFoodFactsProduct]:
     """
     Fetch product information from Open Food Facts API by barcode.
-    
+
     :param barcode: Product barcode
     :return: Product information or None if not found
     """
     url = f"https://world.openfoodfacts.org/api/v2/product/{barcode}.json"
-    
+
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(url, timeout=10.0)
             response.raise_for_status()
             data = response.json()
-            
+
             if data.get("status") != 1 or "product" not in data:
                 return None
-                
+
             product_data = data["product"]
-            
+
             # Extract nutritional information
             nutrition = None
             if "nutriments" in product_data:
@@ -151,9 +165,9 @@ async def _fetch_openfoodfacts_product(barcode: str) -> Optional[OpenFoodFactsPr
                     sugars=nutriments.get("sugars_100g"),
                     proteins=nutriments.get("proteins_100g"),
                     salt=nutriments.get("salt_100g"),
-                    fiber=nutriments.get("fiber_100g")
+                    fiber=nutriments.get("fiber_100g"),
                 )
-            
+
             # Create product object
             product = OpenFoodFactsProduct(
                 id=barcode,
@@ -169,13 +183,15 @@ async def _fetch_openfoodfacts_product(barcode: str) -> Optional[OpenFoodFactsPr
                 nutrition_facts=nutrition,
                 labels=product_data.get("labels", ""),
                 categories=product_data.get("categories", ""),
-                countries=product_data.get("countries", "")
+                countries=product_data.get("countries", ""),
             )
-            
+
             return product
-            
+
     except httpx.HTTPStatusError as e:
-        logging.error(f"HTTP error fetching product {barcode}: {e.response.status_code}")
+        logging.error(
+            f"HTTP error fetching product {barcode}: {e.response.status_code}"
+        )
         return None
     except httpx.RequestError as e:
         logging.error(f"Request error fetching product {barcode}: {e}")
@@ -185,33 +201,35 @@ async def _fetch_openfoodfacts_product(barcode: str) -> Optional[OpenFoodFactsPr
         return None
 
 
-async def _search_openfoodfacts_products(query: str, page: int = 1, page_size: int = 10) -> List[OpenFoodFactsProduct]:
+async def _search_openfoodfacts_products(
+    query: str, page: int = 1, page_size: int = 10
+) -> List[OpenFoodFactsProduct]:
     """
     Search for products in Open Food Facts by name or brand.
-    
+
     :param query: Search query
     :param page: Page number (1-based)
     :param page_size: Number of results per page
     :return: List of products
     """
     encoded_query = quote_plus(query)
-    url = f"https://world.openfoodfacts.org/cgi/search.pl"
-    
+    url = "https://world.openfoodfacts.org/cgi/search.pl"
+
     params = {
         "search_terms": query,
         "search_simple": 1,
         "action": "process",
         "json": 1,
         "page": page,
-        "page_size": min(page_size, 50)  # API limit
+        "page_size": min(page_size, 50),  # API limit
     }
-    
+
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=params, timeout=15.0)
             response.raise_for_status()
             data = response.json()
-            
+
             products = []
             if "products" in data:
                 for product_data in data["products"]:
@@ -227,9 +245,9 @@ async def _search_openfoodfacts_products(query: str, page: int = 1, page_size: i
                             sugars=nutriments.get("sugars_100g"),
                             proteins=nutriments.get("proteins_100g"),
                             salt=nutriments.get("salt_100g"),
-                            fiber=nutriments.get("fiber_100g")
+                            fiber=nutriments.get("fiber_100g"),
                         )
-                    
+
                     # Create product object
                     product = OpenFoodFactsProduct(
                         id=product_data.get("code", ""),
@@ -245,12 +263,12 @@ async def _search_openfoodfacts_products(query: str, page: int = 1, page_size: i
                         nutrition_facts=nutrition,
                         labels=product_data.get("labels", ""),
                         categories=product_data.get("categories", ""),
-                        countries=product_data.get("countries", "")
+                        countries=product_data.get("countries", ""),
                     )
                     products.append(product)
-            
+
             return products
-            
+
     except httpx.HTTPStatusError as e:
         logging.error(f"HTTP error searching products: {e.response.status_code}")
         return []
@@ -381,14 +399,6 @@ async def execute_sparql(ctx: Context, query: str) -> Dict[str, Any]:
     - Join transactions with receipts using `exs:hasReceipt`
 
     **💡 Pro Tip:** Use `get_schema_help()` to get complete schema information and examples before writing queries!\n\n
-    **Example Queries:**\n
-    - Find all transactions for a specific customer ✅\n
-    - Find transactions through bank accounts only ✅\n
-    - Find transactions through payment cards only ✅\n
-    - Get customer account summary ✅\n
-    - Monthly spending by category ✅\n
-    - Top spending merchants ✅\n
-    - Payment card usage patterns ✅\n
 
     :param ctx: The tool context (unused in this implementation).
     :param query: The SPARQL query string to execute.
@@ -409,186 +419,7 @@ async def execute_sparql(ctx: Context, query: str) -> Dict[str, Any]:
 )
 def get_schema_summary() -> str:
     """Generate a human-readable schema summary."""
-    return """# Triple Store Schema Summary
-
-## Core Entity Classes
-
-### Financial Entities
-- **Account** - Banking accounts (checking, savings, credit cards, retirement 3A)
-- **Person** - Individual customers with accounts and payment cards
-- **Organization** - Banks, merchants, and other business entities
-- **PaymentCard** - Credit/debit cards linked to accounts for transactions
-- **FinancialTransaction** - Money transfers with amounts, dates, and status
-- **MonetaryAmount** - Currency amounts (primarily CHF)
-- **PartyRole** - Mediator entities (Payer, Payee, AccountHolder, CardHolder)
-
-### Retail Entities  
-- **Receipt** - Purchase documents with line items and totals
-- **ReceiptLineItem** - Individual items on receipts with products and amounts
-- **Product** - Goods and services with names, descriptions, and category links
-- **ProductCategory** - Hierarchical product classification (beverages, bread, cleaning, etc.)
-- **Merchant** - Business entities with names and addresses
-- **Currency** - Medium of exchange (CHF, EUR, USD)
-- **CurrencyConversion** - Currency exchange operations
-
-## Key Properties
-
-### Person Properties
-- `exs:hasName` - Customer's full name
-- `exs:hasAccount` - Direct link to customer's accounts
-- `exs:hasPaymentCard` - Direct link to customer's payment cards
-- `exs:hasEmailAddress` - Customer's email
-- `exs:hasTelephoneNumber` - Customer's phone number
-
-### Organization Properties
-- `exs:hasName` - Organization name
-- `exs:hasAddress` - Organization address
-- `exs:hasEmailAddress` - Organization email
-- `exs:hasTelephoneNumber` - Organization phone number
-
-### Account Properties
-- `exs:hasAccountHolder` - Links account to customer through role
-- `exs:hasAccountProvider` - Links account to bank through role
-- `exs:hasInitialBalance` - Starting balance
-- `exs:hasCurrency` - Account currency (primarily CHF)
-- `exs:accountNumber` - Account number identifier
-- `exs:hasInternationalBankAccountIdentifier` - IBAN number
-- `exs:hasAccountPurpose` - Purpose of the account
-- `exs:overdraftLimit` - Overdraft limit
-
-### Payment Card Properties
-- `exs:hasCardHolder` - Links card to customer through role
-- `exs:linkedAccount` - Links card to the account it uses for transactions
-- `exs:hasCardIssuer` - Links card to issuing bank through role
-- `exs:cardSchemeOperator` - Links card to scheme operator (Visa, Mastercard, etc.)
-
-### Transaction Properties
-- `exs:hasMonetaryAmount` - Transaction amount
-- `exs:hasTransactionDate` - When transaction occurred
-- `exs:hasParticipant` - Who was involved (through PartyRole)
-- `exs:status` - settled/pending/rejected/cancelled
-- `exs:transactionType` - expense/income/transfer
-- `exs:hasReceipt` - Links to purchase receipt (if applicable)
-- `exs:hasCard` - Links transaction to payment card
-- `exs:hasCurrencyConversion` - Links to currency conversion details
-- `exs:valueDate` - Value date for the transaction
-
-### Product Properties
-- `exs:category` - Product classification (links to ProductCategory instances)
-- `exs:name` - Product name
-- `exs:description` - Product description
-- `exs:migrosId` - Migros product identifier
-- `exs:unitPrice` - Price per unit
-- `exs:legalDesignation` - Legal designation for the product
-- `exs:origin` - Product origin information
-- `exs:imageTransparentUrl` - Product image URL
-- `exs:migrosOnlineId` - Online store identifier
-- `exs:productUrls` - Product page URLs
-
-### Receipt Line Item Properties
-- `exs:hasProduct` - Links to product (both name and GTIN)
-- `exs:lineSubtotal` - Amount for this line item
-- `exs:quantity` - Number of units purchased
-- `exs:unitPrice` - Price per unit
-- `exs:itemDescription` - Description of the line item
-
-### Merchant Properties
-- `exs:hasName` - Business name
-- `exs:hasAddress` - Business location
-- `exs:merchantCategory` - Merchant category classification (SKOS concept)
-
-### ProductCategory Properties
-- `rdfs:label` - Category name/label
-- `exs:hasParentCategory` - Links to parent category (hierarchical structure)
-- `exs:co2Factor` - CO2 impact factor (optional)
-- `exs:taxClass` - Tax classification (optional)
-- `exs:description` - Category description (optional)
-
-### Receipt Properties
-- `exs:hasLineItem` - Links to individual items
-- `exs:hasTotalAmount` - Total receipt amount
-- `exs:receiptDate` - Date of purchase
-- `exs:receiptTime` - Time of purchase
-- `exs:paymentMethod` - How payment was made
-- `exs:vatNumber` - VAT number on receipt
-- `exs:authorizationCode` - Transaction authorization code
-- `exs:entryMode` - How card was used (chip, contactless, etc.)
-- `exs:receiptId` - Receipt identifier
-
-## Common Query Patterns
-
-### Find Customer Transactions
-```sparql
-PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
-PREFIX ex: <https://static.rwpz.net/spendcast/>
-
-SELECT ?transaction ?amount ?date ?merchant ?payer_type WHERE {
-  # Find the customer
-  ?person exs:hasName "Jeanine Marie Blumenthal" .
-  
-  # Get their accounts
-  ?person exs:hasAccount ?account .
-  ?account a ?payer_type .
-  
-  # Find transactions where the account is a payer
-  ?transaction a exs:FinancialTransaction .
-  ?transaction exs:hasParticipant ?payerRole .
-  ?payerRole a exs:Payer .
-  ?payerRole exs:isPlayedBy ?account .
-  
-  # Get transaction details
-  ?transaction exs:hasMonetaryAmount ?amount_uri .
-  ?amount_uri exs:hasAmount ?amount .
-  ?transaction exs:hasTransactionDate ?date .
-  
-  # Get merchant information (payee)
-  ?transaction exs:hasParticipant ?payeeRole .
-  ?payeeRole a exs:Payee .
-  ?payeeRole exs:isPlayedBy ?merchant .
-  ?merchant rdfs:label ?merchant_label .
-}
-```
-
-### Find Transactions Through Payment Cards
-```sparql
-PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
-PREFIX ex: <https://static.rwpz.net/spendcast/>
-
-SELECT ?transaction ?amount ?date ?card_type ?linked_account WHERE {
-  ?person exs:hasName "Jeanine Marie Blumenthal" .
-  ?card exs:hasCardHolder ?cardHolderRole .
-  ?cardHolderRole exs:isPlayedBy ?person .
-  ?card a ?card_type .
-  ?card exs:linkedAccount ?linked_account .
-  
-  # Find transactions where the linked account is a payer
-  ?transaction a exs:FinancialTransaction .
-  ?transaction exs:hasParticipant ?payerRole .
-  ?payerRole a exs:Payer .
-  ?payerRole exs:isPlayedBy ?linked_account .
-  
-  ?transaction exs:hasMonetaryAmount ?amount_uri .
-  ?amount_uri exs:hasAmount ?amount .
-  ?transaction exs:hasTransactionDate ?date .
-}
-```
-
-### Get Customer Account Summary
-```sparql
-PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
-PREFIX ex: <https://static.rwpz.net/spendcast/>
-
-SELECT ?account ?type ?balance ?currency WHERE {
-  ?account a ?account_type .
-  ?account exs:hasAccountHolder ?holder_role .
-  ?holder_role exs:isPlayedBy ?person .
-  ?person exs:hasName "Jeanine Marie Blumenthal" .
-  ?account exs:hasInitialBalance ?balance .
-  ?account exs:hasCurrency ?currency .
-  VALUES ?account_type { exs:CheckingAccount exs:SavingsAccount exs:CreditCard exs:Retirement3A }
-}
-```
-
+    return """
 **Key Insights**: 
 - **Direct relationships**: `?person exs:hasAccount ?account` and `?person exs:hasPaymentCard ?card`
 - **Role-based relationships**: `?account exs:hasAccountHolder ?role` → `?role exs:isPlayedBy ?person`
@@ -639,7 +470,7 @@ PREFIX ex: <https://static.rwpz.net/spendcast/>
 
 SELECT ?transaction ?amount ?date ?merchant ?payer_type WHERE {
   # Find the customer
-  ?customer exs:hasName "Jeanine Marie Blumenthal" .
+  ?customer exs:hasName "CUSTOMER NAME" .
   
   # Option 1: Through bank accounts (customer is payer)
   {
@@ -654,13 +485,14 @@ SELECT ?transaction ?amount ?date ?merchant ?payer_type WHERE {
   # Option 2: Through payment cards (customer is payer)
   {
     ?customer exs:hasPaymentCard ?card .
-    ?card a ?payer_type .
+    ?card exs:linkedAccount ?account_linked_to_card . # <-- Find the linked account
+    ?account_linked_to_card a ?payer_type .
     ?transaction a exs:FinancialTransaction ;
       exs:hasParticipant ?payerRole .
     ?payerRole a exs:Payer ;
-      exs:isPlayedBy ?card .
+      exs:isPlayedBy ?account_linked_to_card . # <-- Use the ACCOUNT as the Payer
   }
-  
+
   # Get transaction details
   ?transaction exs:hasMonetaryAmount ?amount_uri .
   ?amount_uri exs:hasAmount ?amount ;
@@ -681,7 +513,7 @@ PREFIX exs: <https://static.rwpz.net/spendcast/schema#>
 PREFIX ex: <https://static.rwpz.net/spendcast/>
 
 SELECT ?transaction ?amount ?date ?account_type WHERE {
-  ?customer exs:hasName "Jeanine Marie Blumenthal" .
+  ?customer exs:hasName "CUSTOMER NAME" .
   ?account exs:hasAccountHolder ?holderRole .
   ?holderRole exs:isPlayedBy ?customer .
   ?account a ?account_type .
@@ -706,13 +538,16 @@ SELECT ?transaction ?amount ?date ?card_type WHERE {
   ?card exs:hasCardHolder ?cardHolderRole .
   ?cardHolderRole exs:isPlayedBy ?customer .
   ?card a ?card_type .
+  ?card exs:linkedAccount ?linked_account . # 1. Find the card's linked account
+  
   ?transaction a exs:FinancialTransaction ;
     exs:hasParticipant ?payerRole .
   ?payerRole a exs:Payer ;
-    exs:isPlayedBy ?card .
+    exs:isPlayedBy ?linked_account . # 2. Find transactions where the LINKED ACCOUNT is the payer
+    
   ?transaction exs:hasMonetaryAmount ?amount_uri .
-  ?amount_uri exs:hasAmount ?amount ;
-    exs:hasTransactionDate ?date .
+  ?amount_uri exs:hasAmount ?amount .
+  ?transaction exs:hasTransactionDate ?date .
 }
 ORDER BY DESC(?date)
 ```
@@ -726,7 +561,7 @@ SELECT ?account ?type ?balance ?currency WHERE {
   ?account a ?account_type ;
     exs:hasAccountHolder ?holder_role .
   ?holder_role exs:isPlayedBy ?customer .
-  ?customer exs:hasName "Jeanine Marie Blumenthal" .
+  ?customer exs:hasName "CUSTOMER NAME" .
   ?account exs:hasInitialBalance ?balance ;
     exs:hasCurrency ?currency .
   VALUES ?account_type { exs:CheckingAccount exs:SavingsAccount exs:CreditCard exs:Retirement3A }
@@ -938,16 +773,18 @@ async def execute_sparql_validated(ctx: Context, query: str) -> Dict[str, Any]:
 
 # --- Open Food Facts Tools ---
 @mcp.tool()
-async def search_food_products(ctx: Context, query: str, page: int = 1, page_size: int = 10) -> Dict[str, Any]:
+async def search_food_products(
+    ctx: Context, query: str, page: int = 1, page_size: int = 10
+) -> Dict[str, Any]:
     """
     Search for food products in the Open Food Facts database by name, brand, or keywords.
-    
+
     This tool allows you to find products by searching for specific terms. You can search by:
     - Product name (e.g., "nutella", "coca cola")
     - Brand name (e.g., "ferrero", "nestle")
     - Category (e.g., "chocolate", "cereals")
     - General keywords
-    
+
     :param ctx: The tool context (unused in this implementation).
     :param query: Search query - product name, brand, or keywords
     :param page: Page number for pagination (default: 1)
@@ -958,12 +795,12 @@ async def search_food_products(ctx: Context, query: str, page: int = 1, page_siz
         return {
             "error": "Search query must be at least 2 characters long",
             "products": [],
-            "total_found": 0
+            "total_found": 0,
         }
-    
+
     try:
         products = await _search_openfoodfacts_products(query.strip(), page, page_size)
-        
+
         # Convert products to dictionaries for JSON serialization
         products_data = []
         for product in products:
@@ -972,22 +809,22 @@ async def search_food_products(ctx: Context, query: str, page: int = 1, page_siz
             if product_dict["nutrition_facts"]:
                 product_dict["nutrition_facts"] = product_dict["nutrition_facts"]
             products_data.append(product_dict)
-        
+
         return {
             "products": products_data,
             "total_found": len(products_data),
             "page": page,
             "page_size": page_size,
             "query": query,
-            "message": f"Found {len(products_data)} products matching '{query}'"
+            "message": f"Found {len(products_data)} products matching '{query}'",
         }
-        
+
     except Exception as e:
         logging.error(f"Error searching food products: {e}")
         return {
             "error": f"Failed to search products: {str(e)}",
             "products": [],
-            "total_found": 0
+            "total_found": 0,
         }
 
 
@@ -995,7 +832,7 @@ async def search_food_products(ctx: Context, query: str, page: int = 1, page_siz
 async def get_food_product_by_barcode(ctx: Context, barcode: str) -> Dict[str, Any]:
     """
     Get detailed information about a food product by its barcode (EAN, UPC, etc.).
-    
+
     This tool fetches comprehensive product information from Open Food Facts including:
     - Basic product details (name, brand, ingredients)
     - Nutritional information per 100g
@@ -1003,60 +840,62 @@ async def get_food_product_by_barcode(ctx: Context, barcode: str) -> Dict[str, A
     - Allergen information
     - Product images
     - Categories and labels
-    
+
     :param ctx: The tool context (unused in this implementation).
     :param barcode: Product barcode (EAN, UPC, etc.) - usually 8-13 digits
     :return: Dictionary containing detailed product information
     """
     if not barcode or not barcode.strip():
-        return {
-            "error": "Barcode is required",
-            "product": None
-        }
-    
+        return {"error": "Barcode is required", "product": None}
+
     # Clean the barcode
     clean_barcode = barcode.strip()
-    
+
     try:
         product = await _fetch_openfoodfacts_product(clean_barcode)
-        
+
         if not product:
             return {
                 "error": f"Product with barcode {clean_barcode} not found in Open Food Facts database",
                 "product": None,
-                "barcode": clean_barcode
+                "barcode": clean_barcode,
             }
-        
+
         # Convert to dictionary for JSON serialization
         product_dict = product.dict()
-        
+
         return {
             "product": product_dict,
             "barcode": clean_barcode,
-            "message": f"Successfully retrieved product: {product.name}"
+            "message": f"Successfully retrieved product: {product.name}",
         }
-        
+
     except Exception as e:
         logging.error(f"Error fetching product by barcode {clean_barcode}: {e}")
         return {
             "error": f"Failed to fetch product: {str(e)}",
             "product": None,
-            "barcode": clean_barcode
+            "barcode": clean_barcode,
         }
 
 
 @mcp.tool()
-async def analyze_nutrition_spending(ctx: Context, customer_name: str, start_date: str, end_date: str, 
-                                   nutrition_focus: str = "general") -> Dict[str, Any]:
+async def analyze_nutrition_spending(
+    ctx: Context,
+    customer_name: str,
+    start_date: str,
+    end_date: str,
+    nutrition_focus: str = "general",
+) -> Dict[str, Any]:
     """
     Analyze customer spending from a nutritional perspective by combining transaction data with Open Food Facts.
-    
+
     This tool provides insights into spending patterns based on nutritional quality:
     - Spending on products by Nutri-Score (A-E rating)
     - Analysis by Nova Group (1-4, processing level)
     - Eco-Score analysis for environmental impact
     - Categorization by nutritional categories
-    
+
     :param ctx: The tool context (unused in this implementation).
     :param customer_name: Customer name to analyze (e.g., "Jeanine Marie Blumenthal")
     :param start_date: Start date for analysis (YYYY-MM-DD format)
@@ -1067,9 +906,9 @@ async def analyze_nutrition_spending(ctx: Context, customer_name: str, start_dat
     if not all([customer_name, start_date, end_date]):
         return {
             "error": "customer_name, start_date, and end_date are required",
-            "analysis": None
+            "analysis": None,
         }
-    
+
     try:
         # First, get customer transactions with products that have EAN codes
         sparql_query = f"""
@@ -1103,75 +942,97 @@ async def analyze_nutrition_spending(ctx: Context, customer_name: str, start_dat
         }}
         ORDER BY ?date
         """
-        
+
         # Execute SPARQL query
         sparql_result = await _execute_sparql_impl(ctx, sparql_query)
-        
+
         if "error" in sparql_result:
             return {
                 "error": f"Failed to fetch transaction data: {sparql_result['error']}",
-                "analysis": None
+                "analysis": None,
             }
-        
+
         if not sparql_result.get("results", {}).get("bindings"):
             return {
                 "message": "No transactions found for the specified period",
                 "analysis": {
                     "total_transactions": 0,
                     "nutritional_breakdown": {},
-                    "recommendations": []
-                }
+                    "recommendations": [],
+                },
             }
-        
+
         # Process transactions and enrich with Open Food Facts data
         transactions = sparql_result["results"]["bindings"]
         nutrition_analysis = {
-            "nutri_score_spending": {"A": 0, "B": 0, "C": 0, "D": 0, "E": 0, "unknown": 0},
+            "nutri_score_spending": {
+                "A": 0,
+                "B": 0,
+                "C": 0,
+                "D": 0,
+                "E": 0,
+                "unknown": 0,
+            },
             "nova_group_spending": {"1": 0, "2": 0, "3": 0, "4": 0, "unknown": 0},
-            "eco_score_spending": {"A": 0, "B": 0, "C": 0, "D": 0, "E": 0, "unknown": 0},
+            "eco_score_spending": {
+                "A": 0,
+                "B": 0,
+                "C": 0,
+                "D": 0,
+                "E": 0,
+                "unknown": 0,
+            },
             "total_amount": 0,
             "analyzed_products": 0,
             "products_with_nutrition_data": 0,
-            "products_with_ean": 0
+            "products_with_ean": 0,
         }
-        
+
         # Process each transaction
         for transaction in transactions:
             amount = float(transaction["amount"]["value"])
             product_name = transaction["productName"]["value"]
-            
+
             nutrition_analysis["total_amount"] += amount
             nutrition_analysis["analyzed_products"] += 1
-            
+
             # Check if EAN code is available
             if "ean" in transaction and transaction["ean"]["value"]:
                 ean = transaction["ean"]["value"]
                 nutrition_analysis["products_with_ean"] += 1
-                
+
                 # Fetch nutrition data from Open Food Facts
                 off_product = await _fetch_openfoodfacts_product(ean)
-                
+
                 if off_product:
                     nutrition_analysis["products_with_nutrition_data"] += 1
-                    
+
                     # Categorize by Nutri-Score
                     nutri_score = off_product.nutri_score or "unknown"
                     if nutri_score.lower() in ["a", "b", "c", "d", "e"]:
-                        nutrition_analysis["nutri_score_spending"][nutri_score.upper()] += amount
+                        nutrition_analysis["nutri_score_spending"][
+                            nutri_score.upper()
+                        ] += amount
                     else:
                         nutrition_analysis["nutri_score_spending"]["unknown"] += amount
-                    
+
                     # Categorize by Nova Group
-                    nova_group = str(off_product.nova_group) if off_product.nova_group else "unknown"
+                    nova_group = (
+                        str(off_product.nova_group)
+                        if off_product.nova_group
+                        else "unknown"
+                    )
                     if nova_group in ["1", "2", "3", "4"]:
                         nutrition_analysis["nova_group_spending"][nova_group] += amount
                     else:
                         nutrition_analysis["nova_group_spending"]["unknown"] += amount
-                    
+
                     # Categorize by Eco-Score
                     eco_score = off_product.eco_score or "unknown"
                     if eco_score.lower() in ["a", "b", "c", "d", "e"]:
-                        nutrition_analysis["eco_score_spending"][eco_score.upper()] += amount
+                        nutrition_analysis["eco_score_spending"][eco_score.upper()] += (
+                            amount
+                        )
                     else:
                         nutrition_analysis["eco_score_spending"]["unknown"] += amount
                 else:
@@ -1184,28 +1045,34 @@ async def analyze_nutrition_spending(ctx: Context, customer_name: str, start_dat
                 nutrition_analysis["nutri_score_spending"]["unknown"] += amount
                 nutrition_analysis["nova_group_spending"]["unknown"] += amount
                 nutrition_analysis["eco_score_spending"]["unknown"] += amount
-        
+
         # Generate recommendations based on the analysis
         recommendations = []
-        
+
         if nutrition_analysis["total_amount"] > 0:
             # Nutri-Score recommendations
-            unhealthy_spending = (nutrition_analysis["nutri_score_spending"]["D"] + 
-                                nutrition_analysis["nutri_score_spending"]["E"])
+            unhealthy_spending = (
+                nutrition_analysis["nutri_score_spending"]["D"]
+                + nutrition_analysis["nutri_score_spending"]["E"]
+            )
             if unhealthy_spending > nutrition_analysis["total_amount"] * 0.3:
-                recommendations.append({
-                    "type": "nutri_score",
-                    "message": f"You spend {unhealthy_spending:.2f} CHF ({unhealthy_spending/nutrition_analysis['total_amount']*100:.1f}%) on products with poor Nutri-Scores (D/E). Consider choosing more A/B rated products."
-                })
-            
+                recommendations.append(
+                    {
+                        "type": "nutri_score",
+                        "message": f"You spend {unhealthy_spending:.2f} CHF ({unhealthy_spending/nutrition_analysis['total_amount']*100:.1f}%) on products with poor Nutri-Scores (D/E). Consider choosing more A/B rated products.",
+                    }
+                )
+
             # Nova Group recommendations
             ultra_processed_spending = nutrition_analysis["nova_group_spending"]["4"]
             if ultra_processed_spending > nutrition_analysis["total_amount"] * 0.4:
-                recommendations.append({
-                    "type": "nova_group",
-                    "message": f"You spend {ultra_processed_spending:.2f} CHF ({ultra_processed_spending/nutrition_analysis['total_amount']*100:.1f}%) on ultra-processed foods (Nova Group 4). Try to include more minimally processed alternatives."
-                })
-        
+                recommendations.append(
+                    {
+                        "type": "nova_group",
+                        "message": f"You spend {ultra_processed_spending:.2f} CHF ({ultra_processed_spending/nutrition_analysis['total_amount']*100:.1f}%) on ultra-processed foods (Nova Group 4). Try to include more minimally processed alternatives.",
+                    }
+                )
+
         return {
             "analysis": nutrition_analysis,
             "customer_name": customer_name,
@@ -1215,73 +1082,74 @@ async def analyze_nutrition_spending(ctx: Context, customer_name: str, start_dat
                 "total_spent": f"{nutrition_analysis['total_amount']:.2f} CHF",
                 "products_analyzed": nutrition_analysis["analyzed_products"],
                 "products_with_ean": nutrition_analysis["products_with_ean"],
-                "nutrition_data_coverage": f"{nutrition_analysis['products_with_nutrition_data']}/{nutrition_analysis['products_with_ean']} products with EAN codes"
-            }
+                "nutrition_data_coverage": f"{nutrition_analysis['products_with_nutrition_data']}/{nutrition_analysis['products_with_ean']} products with EAN codes",
+            },
         }
-        
+
     except Exception as e:
         logging.error(f"Error analyzing nutrition spending: {e}")
         return {
             "error": f"Failed to analyze nutrition spending: {str(e)}",
-            "analysis": None
+            "analysis": None,
         }
 
 
 @mcp.tool()
-async def get_healthy_alternatives(ctx: Context, barcode: str, criteria: str = "nutri_score") -> Dict[str, Any]:
+async def get_healthy_alternatives(
+    ctx: Context, barcode: str, criteria: str = "nutri_score"
+) -> Dict[str, Any]:
     """
     Find healthier alternatives to a given product using Open Food Facts data.
-    
+
     This tool suggests products that are:
     - In the same category as the original product
     - Have better nutritional scores
     - Are available in the same market (when possible)
-    
+
     :param ctx: The tool context (unused in this implementation).
     :param barcode: Barcode of the product to find alternatives for
     :param criteria: Criteria for "healthier" - "nutri_score", "nova_group", "eco_score", or "all"
     :return: Dictionary containing healthier alternatives
     """
     if not barcode or not barcode.strip():
-        return {
-            "error": "Barcode is required",
-            "alternatives": []
-        }
-    
+        return {"error": "Barcode is required", "alternatives": []}
+
     try:
         # First, get the original product
         original_product = await _fetch_openfoodfacts_product(barcode.strip())
-        
+
         if not original_product:
             return {
                 "error": f"Original product with barcode {barcode} not found",
-                "alternatives": []
+                "alternatives": [],
             }
-        
+
         # Extract main category for searching alternatives
         categories = original_product.categories or ""
         main_category = categories.split(",")[0].strip() if categories else ""
-        
+
         if not main_category:
             return {
                 "error": "Cannot find alternatives - original product has no category information",
                 "original_product": original_product.dict(),
-                "alternatives": []
+                "alternatives": [],
             }
-        
+
         # Search for products in the same category
-        alternative_products = await _search_openfoodfacts_products(main_category, page=1, page_size=20)
-        
+        alternative_products = await _search_openfoodfacts_products(
+            main_category, page=1, page_size=20
+        )
+
         # Filter and rank alternatives based on criteria
         better_alternatives = []
-        
+
         for alt_product in alternative_products:
             if alt_product.barcode == original_product.barcode:
                 continue  # Skip the original product
-            
+
             is_better = False
             score_comparison = {}
-            
+
             # Compare based on criteria
             if criteria in ["nutri_score", "all"]:
                 orig_nutri = original_product.nutri_score or "Z"
@@ -1289,49 +1157,45 @@ async def get_healthy_alternatives(ctx: Context, barcode: str, criteria: str = "
                 if alt_nutri < orig_nutri:  # A < B < C < D < E
                     is_better = True
                     score_comparison["nutri_score"] = f"{orig_nutri} → {alt_nutri}"
-            
+
             if criteria in ["nova_group", "all"]:
                 orig_nova = original_product.nova_group or 5
                 alt_nova = alt_product.nova_group or 5
                 if alt_nova < orig_nova:  # Lower Nova group is better
                     is_better = True
                     score_comparison["nova_group"] = f"{orig_nova} → {alt_nova}"
-            
+
             if criteria in ["eco_score", "all"]:
                 orig_eco = original_product.eco_score or "Z"
                 alt_eco = alt_product.eco_score or "Z"
                 if alt_eco < orig_eco:  # A < B < C < D < E
                     is_better = True
                     score_comparison["eco_score"] = f"{orig_eco} → {alt_eco}"
-            
+
             if is_better:
                 alt_dict = alt_product.dict()
                 alt_dict["improvement_reason"] = score_comparison
                 better_alternatives.append(alt_dict)
-        
+
         # Sort alternatives by number of improvements
         better_alternatives.sort(
-            key=lambda x: len(x["improvement_reason"]), 
-            reverse=True
+            key=lambda x: len(x["improvement_reason"]), reverse=True
         )
-        
+
         # Limit to top 5 alternatives
         better_alternatives = better_alternatives[:5]
-        
+
         return {
             "original_product": original_product.dict(),
             "alternatives": better_alternatives,
             "criteria_used": criteria,
             "total_alternatives_found": len(better_alternatives),
-            "message": f"Found {len(better_alternatives)} healthier alternatives to {original_product.name}"
+            "message": f"Found {len(better_alternatives)} healthier alternatives to {original_product.name}",
         }
-        
+
     except Exception as e:
         logging.error(f"Error finding healthy alternatives: {e}")
-        return {
-            "error": f"Failed to find alternatives: {str(e)}",
-            "alternatives": []
-        }
+        return {"error": f"Failed to find alternatives: {str(e)}", "alternatives": []}
 
 
 # --- Resource Registration ---
