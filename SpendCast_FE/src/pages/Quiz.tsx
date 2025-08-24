@@ -10,6 +10,7 @@ import {
   quizQuestions,
   type QuizState,
 } from '../components/Quiz';
+import Footer from '@/components/Footer';
 
 interface QuizProps {
   onQuizComplete?: () => void;
@@ -83,14 +84,17 @@ export default function Quiz({ onQuizComplete }: QuizProps) {
 
   if (quizState.showResult) {
     return (
-      <div className="h-full overflow-y-auto touch-scroll">
-        <style>{animationStyles}</style>
-        <div className="min-h-full">
-          <QuizResults
-            score={quizState.score}
-            totalQuestions={quizQuestions.length}
-          />
+      <div className="h-full flex flex-col">
+        <div className="flex-1 overflow-y-auto touch-scroll">
+          <style>{animationStyles}</style>
+          <div className="min-h-full">
+            <QuizResults
+              score={quizState.score}
+              totalQuestions={quizQuestions.length}
+            />
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -98,51 +102,54 @@ export default function Quiz({ onQuizComplete }: QuizProps) {
   const currentQ = quizQuestions[quizState.currentQuestion];
 
   return (
-    <div className="h-full overflow-y-auto touch-scroll">
-      <style>{animationStyles}</style>
-      <FloatingIcons />
-      <main className="px-4 py-8 pb-24 min-h-full">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8 animate-fade-in">
-            <h2 className="text-2xl font-semibold text-brand-secondary mb-4 animate-slide-down">
-              Your August 2024 Financial Story
-            </h2>
-            <p className="text-brand-secondary/70 mb-6 animate-fade-in-delay">
-              SpendCast analyzed your spending patterns and found something
-              inspiring. Let's discover your financial personality together!
-            </p>
+    <div className="h-full flex flex-col">
+      <div className="flex-1 overflow-y-auto touch-scroll">
+        <style>{animationStyles}</style>
+        <FloatingIcons />
+        <main className="px-4 py-8 min-h-full">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-8 animate-fade-in">
+              <h2 className="text-2xl font-semibold text-brand-secondary mb-4 animate-slide-down">
+                Your August 2024 Financial Story
+              </h2>
+              <p className="text-brand-secondary/70 mb-6 animate-fade-in-delay">
+                SpendCast analyzed your spending patterns and found something
+                inspiring. Let's discover your financial personality together!
+              </p>
 
-            <QuizProgress
-              currentQuestion={quizState.currentQuestion}
-              totalQuestions={quizQuestions.length}
+              <QuizProgress
+                currentQuestion={quizState.currentQuestion}
+                totalQuestions={quizQuestions.length}
+              />
+            </div>
+
+            <QuizQuestion
+              question={currentQ}
+              selectedAnswer={quizState.selectedAnswer}
+              answered={quizState.answered}
+              isTransitioning={quizState.isTransitioning}
+              onAnswerSelect={handleAnswerSelect}
             />
+
+            {quizState.answered && (
+              <QuizExplanation
+                explanation={currentQ.explanation}
+                isTransitioning={quizState.isTransitioning}
+              />
+            )}
+
+            {quizState.answered && (
+              <QuizNextButton
+                currentQuestion={quizState.currentQuestion}
+                totalQuestions={quizQuestions.length}
+                isTransitioning={quizState.isTransitioning}
+                onNext={handleNextQuestion}
+              />
+            )}
           </div>
-
-          <QuizQuestion
-            question={currentQ}
-            selectedAnswer={quizState.selectedAnswer}
-            answered={quizState.answered}
-            isTransitioning={quizState.isTransitioning}
-            onAnswerSelect={handleAnswerSelect}
-          />
-
-          {quizState.answered && (
-            <QuizExplanation
-              explanation={currentQ.explanation}
-              isTransitioning={quizState.isTransitioning}
-            />
-          )}
-
-          {quizState.answered && (
-            <QuizNextButton
-              currentQuestion={quizState.currentQuestion}
-              totalQuestions={quizQuestions.length}
-              isTransitioning={quizState.isTransitioning}
-              onNext={handleNextQuestion}
-            />
-          )}
-        </div>
-      </main>
+        </main>
+      </div>
+      <Footer />
     </div>
   );
 }
