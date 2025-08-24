@@ -6,13 +6,13 @@ import logging
 
 from src.crud.openfoodfacts import (
     fetch_product_by_barcode,
-    search_products_by_query, 
+    search_products_by_query,
     find_healthy_alternatives,
     analyze_product_nutrition,
     OpenFoodFactsProduct,
     ProductSearchResult,
     HealthyAlternativesResult,
-    ProductNutrition
+    ProductNutrition,
 )
 from src.models import (
     ProductSearchRequest,
@@ -20,7 +20,7 @@ from src.models import (
     HealthyAlternativesRequest,
     ProductResponse,
     SearchResponse,
-    AlternativesResponse
+    AlternativesResponse,
 )
 
 router = APIRouter(prefix="/api/v1/openfoodfacts", tags=["Open Food Facts"])
@@ -39,8 +39,8 @@ async def health_check():
             "/search - Search products",
             "/product/{barcode} - Get product by barcode",
             "/analyze/{barcode} - Analyze product nutrition",
-            "/alternatives/{barcode} - Find healthy alternatives"
-        ]
+            "/alternatives/{barcode} - Find healthy alternatives",
+        ],
     }
 
 
@@ -48,10 +48,10 @@ async def health_check():
 async def search_products(request: ProductSearchRequest):
     """
     Search for food products by name, brand, or keywords.
-    
+
     This endpoint allows you to search the Open Food Facts database for products
     using various criteria like product name, brand, or category.
-    
+
     **Examples:**
     - Search by product name: "nutella"
     - Search by brand: "ferrero"
@@ -59,26 +59,19 @@ async def search_products(request: ProductSearchRequest):
     """
     try:
         logger.info(f"Searching products with query: {request.query}")
-        
+
         result = await search_products_by_query(
-            query=request.query,
-            page=request.page,
-            page_size=request.page_size
+            query=request.query, page=request.page, page_size=request.page_size
         )
-        
+
         message = f"Found {result.total_found} products matching '{request.query}'"
-        
-        return SearchResponse(
-            success=True,
-            message=message,
-            data=result
-        )
-        
+
+        return SearchResponse(success=True, message=message, data=result)
+
     except Exception as e:
         logger.error(f"Error searching products: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to search products: {str(e)}"
+            status_code=500, detail=f"Failed to search products: {str(e)}"
         )
 
 
@@ -86,11 +79,11 @@ async def search_products(request: ProductSearchRequest):
 async def search_products_get(
     query: str = Query(..., min_length=2, description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(10, ge=1, le=50, description="Results per page")
+    page_size: int = Query(10, ge=1, le=50, description="Results per page"),
 ):
     """
     Search for food products by name, brand, or keywords (GET method).
-    
+
     Same as POST /search but using query parameters for easier testing.
     """
     request = ProductSearchRequest(query=query, page=page, page_size=page_size)
@@ -101,53 +94,49 @@ async def search_products_get(
 async def get_product_by_barcode(barcode: str):
     """
     Get detailed product information by barcode.
-    
+
     Retrieves comprehensive product information including:
     - Basic details (name, brand, ingredients)
     - Nutritional information per 100g
     - Quality scores (Nutri-Score, Nova Group, Eco-Score)
     - Allergen information
     - Product images and categories
-    
+
     **Parameters:**
     - barcode: Product barcode (EAN, UPC, etc.) - usually 8-13 digits
-    
+
     **Example barcodes:**
     - 5449000011114 (Coca-Cola)
     - 3017620422003 (Nutella)
     """
     try:
         logger.info(f"Fetching product with barcode: {barcode}")
-        
+
         if not barcode or not barcode.strip():
-            raise HTTPException(
-                status_code=400,
-                detail="Barcode is required"
-            )
-        
+            raise HTTPException(status_code=400, detail="Barcode is required")
+
         clean_barcode = barcode.strip()
         product = await fetch_product_by_barcode(clean_barcode)
-        
+
         if not product:
             return ProductResponse(
                 success=False,
                 message=f"Product with barcode {clean_barcode} not found in Open Food Facts database",
-                product=None
+                product=None,
             )
-        
+
         return ProductResponse(
             success=True,
             message=f"Successfully retrieved product: {product.name}",
-            product=product
+            product=product,
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error fetching product by barcode {barcode}: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to fetch product: {str(e)}"
+            status_code=500, detail=f"Failed to fetch product: {str(e)}"
         )
 
 
@@ -155,47 +144,38 @@ async def get_product_by_barcode(barcode: str):
 async def analyze_product(barcode: str):
     """
     Analyze a product's nutritional information and quality scores.
-    
+
     Provides detailed analysis including:
     - Nutri-Score interpretation (A-E rating)
     - NOVA Group analysis (processing level 1-4)
     - Eco-Score environmental impact (A-E rating)
     - Nutritional facts breakdown
     - Health recommendations
-    
+
     **Parameters:**
     - barcode: Product barcode to analyze
     """
     try:
         logger.info(f"Analyzing product with barcode: {barcode}")
-        
+
         if not barcode or not barcode.strip():
-            raise HTTPException(
-                status_code=400,
-                detail="Barcode is required"
-            )
-        
+            raise HTTPException(status_code=400, detail="Barcode is required")
+
         result = await analyze_product_nutrition(barcode.strip())
-        
+
         if "error" in result:
             return ProductAnalysisResponse(
-                success=False,
-                error=result["error"],
-                analysis=None
+                success=False, error=result["error"], analysis=None
             )
-        
-        return ProductAnalysisResponse(
-            success=True,
-            analysis=result["analysis"]
-        )
-        
+
+        return ProductAnalysisResponse(success=True, analysis=result["analysis"])
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error analyzing product {barcode}: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to analyze product: {str(e)}"
+            status_code=500, detail=f"Failed to analyze product: {str(e)}"
         )
 
 
@@ -203,55 +183,53 @@ async def analyze_product(barcode: str):
 async def find_alternatives(request: HealthyAlternativesRequest):
     """
     Find healthier alternatives to a given product.
-    
+
     Searches for products in the same category that have better:
     - Nutri-Score ratings
     - NOVA Group classifications (less processed)
     - Eco-Score ratings (more environmentally friendly)
-    
+
     **Request body:**
     - barcode: Product barcode to find alternatives for
     - criteria: "nutri_score", "nova_group", "eco_score", or "all"
     """
     try:
-        logger.info(f"Finding alternatives for barcode: {request.barcode} with criteria: {request.criteria}")
-        
-        result = await find_healthy_alternatives(
-            barcode=request.barcode,
-            criteria=request.criteria
+        logger.info(
+            f"Finding alternatives for barcode: {request.barcode} with criteria: {request.criteria}"
         )
-        
+
+        result = await find_healthy_alternatives(
+            barcode=request.barcode, criteria=request.criteria
+        )
+
         if not result.original_product:
             return AlternativesResponse(
                 success=False,
                 message=f"Original product with barcode {request.barcode} not found",
-                data=result
+                data=result,
             )
-        
+
         message = f"Found {result.total_alternatives_found} healthier alternatives to {result.original_product.name}"
-        
-        return AlternativesResponse(
-            success=True,
-            message=message,
-            data=result
-        )
-        
+
+        return AlternativesResponse(success=True, message=message, data=result)
+
     except Exception as e:
         logger.error(f"Error finding alternatives: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to find alternatives: {str(e)}"
+            status_code=500, detail=f"Failed to find alternatives: {str(e)}"
         )
 
 
 @router.get("/alternatives/{barcode}", response_model=AlternativesResponse)
 async def find_alternatives_get(
     barcode: str,
-    criteria: str = Query("nutri_score", description="Criteria for healthier alternatives")
+    criteria: str = Query(
+        "nutri_score", description="Criteria for healthier alternatives"
+    ),
 ):
     """
     Find healthier alternatives to a given product (GET method).
-    
+
     Same as POST /alternatives but using path and query parameters.
     """
     request = HealthyAlternativesRequest(barcode=barcode, criteria=criteria)
@@ -262,14 +240,14 @@ async def find_alternatives_get(
 async def get_popular_categories():
     """
     Get list of popular food categories for search suggestions.
-    
+
     Returns commonly searched categories that can be used
     as search terms or filters.
     """
     try:
         popular_categories = [
             "beverages",
-            "snacks", 
+            "snacks",
             "dairy",
             "bread",
             "chocolate",
@@ -287,21 +265,20 @@ async def get_popular_categories():
             "cheese",
             "yogurt",
             "cookies",
-            "ice-cream"
+            "ice-cream",
         ]
-        
+
         return {
             "success": True,
             "categories": popular_categories,
             "total": len(popular_categories),
-            "usage": "Use these categories as search terms in the /search endpoint"
+            "usage": "Use these categories as search terms in the /search endpoint",
         }
-        
+
     except Exception as e:
         logger.error(f"Error getting categories: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get categories: {str(e)}"
+            status_code=500, detail=f"Failed to get categories: {str(e)}"
         )
 
 
@@ -309,14 +286,14 @@ async def get_popular_categories():
 async def get_popular_brands():
     """
     Get list of popular food brands for search suggestions.
-    
+
     Returns commonly searched brands that can be used
     as search terms.
     """
     try:
         popular_brands = [
             "Nestle",
-            "Ferrero", 
+            "Ferrero",
             "Coca-Cola",
             "Pepsi",
             "Danone",
@@ -332,29 +309,26 @@ async def get_popular_brands():
             "Campbell",
             "Migros",
             "Coop",
-            "Denner"
+            "Denner",
         ]
-        
+
         return {
             "success": True,
             "brands": popular_brands,
             "total": len(popular_brands),
-            "usage": "Use these brands as search terms in the /search endpoint"
+            "usage": "Use these brands as search terms in the /search endpoint",
         }
-        
+
     except Exception as e:
         logger.error(f"Error getting brands: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get brands: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get brands: {str(e)}")
 
 
 @router.get("/stats")
 async def get_api_stats():
     """
     Get statistics and information about the Open Food Facts integration.
-    
+
     Provides metadata about the service and usage statistics.
     """
     try:
@@ -370,25 +344,21 @@ async def get_api_stats():
                 "Nutritional analysis and health scores",
                 "Healthy alternatives recommendations",
                 "Multi-language support",
-                "Real-time data from Open Food Facts database"
+                "Real-time data from Open Food Facts database",
             ],
             "supported_scores": {
                 "nutri_score": "Nutritional quality rating (A-E)",
                 "nova_group": "Food processing level (1-4)",
-                "eco_score": "Environmental impact rating (A-E)"
+                "eco_score": "Environmental impact rating (A-E)",
             },
             "data_coverage": "Over 2.8 million products worldwide",
-            "update_frequency": "Real-time updates from contributors"
+            "update_frequency": "Real-time updates from contributors",
         }
-        
-        return {
-            "success": True,
-            "stats": stats
-        }
-        
+
+        return {"success": True, "stats": stats}
+
     except Exception as e:
         logger.error(f"Error getting API stats: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get API stats: {str(e)}"
+            status_code=500, detail=f"Failed to get API stats: {str(e)}"
         )

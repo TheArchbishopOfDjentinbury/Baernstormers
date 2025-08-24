@@ -12,7 +12,7 @@ from src.models import (
     TransactionDetailsAPI as TransactionDetails,
     ReceiptItemAPI as ReceiptItem,
     ReceiptDetailsAPI as ReceiptDetails,
-    SpendingAnalyticsAPI as SpendingAnalytics
+    SpendingAnalyticsAPI as SpendingAnalytics,
 )
 
 router = APIRouter(prefix="/api/v1/transactions", tags=["transactions"])

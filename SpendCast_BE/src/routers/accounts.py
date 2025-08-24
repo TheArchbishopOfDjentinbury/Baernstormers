@@ -6,7 +6,12 @@ import logging
 import httpx
 
 from src.config import settings
-from src.models import AccountBasic, AccountDetailsAPI as AccountDetails, AccountTransaction, AccountSummaryAPI as AccountSummary
+from src.models import (
+    AccountBasic,
+    AccountDetailsAPI as AccountDetails,
+    AccountTransaction,
+    AccountSummaryAPI as AccountSummary,
+)
 
 router = APIRouter(prefix="/api/v1/accounts", tags=["accounts"])
 

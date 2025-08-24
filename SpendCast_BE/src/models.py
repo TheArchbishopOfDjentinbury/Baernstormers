@@ -541,14 +541,18 @@ class DatabaseStatus(BaseModel):
     status: str = Field(..., description="Connection status")
     database_type: str = Field(..., description="Type of database")
     error: Optional[str] = Field(None, description="Error message if connection failed")
-    details: Optional[Dict[str, Any]] = Field(None, description="Additional connection details")
+    details: Optional[Dict[str, Any]] = Field(
+        None, description="Additional connection details"
+    )
 
 
 class DatabaseCheckResponse(BaseModel):
     """Complete database check response model."""
 
     overall_status: str = Field(..., description="Overall health status")
-    databases: List[DatabaseStatus] = Field(..., description="List of database statuses")
+    databases: List[DatabaseStatus] = Field(
+        ..., description="List of database statuses"
+    )
     timestamp: str = Field(..., description="Check timestamp")
 
 
@@ -556,7 +560,9 @@ class DatabaseCheckResponse(BaseModel):
 class ProductSearchRequest(BaseModel):
     """Product search request model."""
 
-    query: str = Field(..., min_length=2, description="Search query (product name, brand, category)")
+    query: str = Field(
+        ..., min_length=2, description="Search query (product name, brand, category)"
+    )
     page: int = Field(1, ge=1, description="Page number")
     page_size: int = Field(10, ge=1, le=50, description="Number of results per page")
 
@@ -573,7 +579,9 @@ class HealthyAlternativesRequest(BaseModel):
     """Healthy alternatives request model."""
 
     barcode: str = Field(..., description="Product barcode to find alternatives for")
-    criteria: str = Field("nutri_score", description="Criteria for healthier alternatives")
+    criteria: str = Field(
+        "nutri_score", description="Criteria for healthier alternatives"
+    )
 
 
 class OpenFoodFactsBaseResponse(BaseModel):
@@ -586,7 +594,9 @@ class OpenFoodFactsBaseResponse(BaseModel):
 class ProductResponse(OpenFoodFactsBaseResponse):
     """Single product response model."""
 
-    product: Optional[Any] = Field(None, description="Product data")  # OpenFoodFactsProduct type
+    product: Optional[Any] = Field(
+        None, description="Product data"
+    )  # OpenFoodFactsProduct type
 
 
 class SearchResponse(OpenFoodFactsBaseResponse):
@@ -598,7 +608,9 @@ class SearchResponse(OpenFoodFactsBaseResponse):
 class AlternativesResponse(OpenFoodFactsBaseResponse):
     """Healthy alternatives response model."""
 
-    data: Any = Field(..., description="Alternative products")  # HealthyAlternativesResult type
+    data: Any = Field(
+        ..., description="Alternative products"
+    )  # HealthyAlternativesResult type
 
 
 # OpenFoodFacts CRUD Models
@@ -628,7 +640,9 @@ class OpenFoodFactsProduct(BaseModel):
     nova_group: Optional[int] = Field(None, description="NOVA group (1-4)")
     eco_score: Optional[str] = Field(None, description="Eco-Score grade (A-E)")
     image_url: Optional[str] = Field(None, description="Product image URL")
-    nutrition_facts: Optional[ProductNutrition] = Field(None, description="Nutritional information")
+    nutrition_facts: Optional[ProductNutrition] = Field(
+        None, description="Nutritional information"
+    )
     labels: Optional[str] = Field(None, description="Product labels")
     categories: Optional[str] = Field(None, description="Product categories")
     countries: Optional[str] = Field(None, description="Available countries")
@@ -647,21 +661,37 @@ class ProductSearchResult(BaseModel):
 class NutritionAnalysis(BaseModel):
     """Nutrition analysis result."""
 
-    nutri_score_spending: Dict[str, float] = Field(..., description="Spending by Nutri-Score")
-    nova_group_spending: Dict[str, float] = Field(..., description="Spending by NOVA group")
-    eco_score_spending: Dict[str, float] = Field(..., description="Spending by Eco-Score")
+    nutri_score_spending: Dict[str, float] = Field(
+        ..., description="Spending by Nutri-Score"
+    )
+    nova_group_spending: Dict[str, float] = Field(
+        ..., description="Spending by NOVA group"
+    )
+    eco_score_spending: Dict[str, float] = Field(
+        ..., description="Spending by Eco-Score"
+    )
     total_amount: float = Field(..., description="Total amount analyzed")
     analyzed_products: int = Field(..., description="Number of products analyzed")
-    products_with_nutrition_data: int = Field(..., description="Products with nutrition data")
-    recommendations: List[Dict[str, str]] = Field(..., description="Health recommendations")
+    products_with_nutrition_data: int = Field(
+        ..., description="Products with nutrition data"
+    )
+    recommendations: List[Dict[str, str]] = Field(
+        ..., description="Health recommendations"
+    )
 
 
 class HealthyAlternativesResult(BaseModel):
     """Result for healthy alternatives search."""
 
-    original_product: Optional[OpenFoodFactsProduct] = Field(None, description="Original product")
-    alternatives: List[Dict[str, Any]] = Field(..., description="List of alternative products")
-    total_alternatives_found: int = Field(..., description="Number of alternatives found")
+    original_product: Optional[OpenFoodFactsProduct] = Field(
+        None, description="Original product"
+    )
+    alternatives: List[Dict[str, Any]] = Field(
+        ..., description="List of alternative products"
+    )
+    total_alternatives_found: int = Field(
+        ..., description="Number of alternatives found"
+    )
     criteria_used: str = Field(..., description="Criteria used for comparison")
 
 
@@ -714,7 +744,9 @@ class ReceiptDetailsAPI(BaseModel):
     payment_method: Optional[str] = Field(None, description="Payment method")
     merchant: Optional[str] = Field(None, description="Merchant name")
     vat_number: Optional[str] = Field(None, description="VAT number")
-    items: List[ReceiptItemAPI] = Field(default_factory=list, description="Receipt items")
+    items: List[ReceiptItemAPI] = Field(
+        default_factory=list, description="Receipt items"
+    )
 
 
 class SpendingAnalyticsAPI(BaseModel):

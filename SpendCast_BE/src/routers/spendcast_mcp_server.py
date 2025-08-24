@@ -1059,7 +1059,7 @@ async def analyze_nutrition_spending(
                 recommendations.append(
                     {
                         "type": "nutri_score",
-                        "message": f"You spend {unhealthy_spending:.2f} CHF ({unhealthy_spending/nutrition_analysis['total_amount']*100:.1f}%) on products with poor Nutri-Scores (D/E). Consider choosing more A/B rated products.",
+                        "message": f"You spend {unhealthy_spending:.2f} CHF ({unhealthy_spending / nutrition_analysis['total_amount'] * 100:.1f}%) on products with poor Nutri-Scores (D/E). Consider choosing more A/B rated products.",
                     }
                 )
 
@@ -1069,7 +1069,7 @@ async def analyze_nutrition_spending(
                 recommendations.append(
                     {
                         "type": "nova_group",
-                        "message": f"You spend {ultra_processed_spending:.2f} CHF ({ultra_processed_spending/nutrition_analysis['total_amount']*100:.1f}%) on ultra-processed foods (Nova Group 4). Try to include more minimally processed alternatives.",
+                        "message": f"You spend {ultra_processed_spending:.2f} CHF ({ultra_processed_spending / nutrition_analysis['total_amount'] * 100:.1f}%) on ultra-processed foods (Nova Group 4). Try to include more minimally processed alternatives.",
                     }
                 )
 
