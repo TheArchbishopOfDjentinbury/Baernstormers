@@ -58,7 +58,7 @@ const Chat: React.FC = () => {
       setIsWaitingForResponse(false);
 
       const errorMessage: Message = {
-        id: Date.now().toString(),
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         text: `Error: ${error}`,
         sender: 'bot',
         timestamp: new Date(),
@@ -88,7 +88,7 @@ const Chat: React.FC = () => {
 
   const addUserMessage = (text: string, type: 'text' | 'voice' = 'text') => {
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       text,
       sender: 'user',
       timestamp: new Date(),
@@ -188,7 +188,7 @@ const Chat: React.FC = () => {
       setRecordingError('Failed to process recording');
 
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         text: 'Sorry, I could not process your voice message.',
         sender: 'bot',
         timestamp: new Date(),
@@ -250,19 +250,21 @@ const Chat: React.FC = () => {
                 <div className="flex flex-wrap justify-center gap-2 text-sm text-brand-secondary/60 mt-6">
                   <button
                     onClick={() =>
-                      handleExampleClick('How much did I spend on coffee?')
+                      handleExampleClick(
+                        'How much did I spend on coffee in 2025?'
+                      )
                     }
                     className="bg-gray-100 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
                   >
-                    "How much did I spend on coffee?"
+                    "How much did I spend on coffee in 2025?"
                   </button>
                   <button
                     onClick={() =>
-                      handleExampleClick('Show my monthly spending')
+                      handleExampleClick('Show my monthly spending in 2025')
                     }
                     className="bg-gray-100 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
                   >
-                    "Show my monthly spending"
+                    "Show my monthly spending in 2025"
                   </button>
                 </div>
               </div>
@@ -323,6 +325,19 @@ const Chat: React.FC = () => {
           </div>
         )}
 
+        {/* Audio Response Toggle */}
+        <div className="bg-white px-4 py-3">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <span className="text-base text-gray-700">
+              Response me as audio
+            </span>
+            <Switch
+              checked={responseAsAudio}
+              onCheckedChange={setResponseAsAudio}
+            />
+          </div>
+        </div>
+
         {/* Chat input container */}
         <div className="bg-brand-primary border-t border-brand-secondary/20 shadow-lg">
           {/* Recording indicator */}
@@ -342,19 +357,6 @@ const Chat: React.FC = () => {
               <span>Recording...</span>
             </div>
           )}
-
-          {/* Audio Response Toggle */}
-          <div className="bg-white border-b border-gray-200 px-4 py-3">
-            <div className="max-w-4xl mx-auto flex items-center justify-between">
-              <span className="text-base text-gray-700">
-                Response me as audio
-              </span>
-              <Switch
-                checked={responseAsAudio}
-                onCheckedChange={setResponseAsAudio}
-              />
-            </div>
-          </div>
 
           {/* Chat input area */}
           <div className="px-4 py-4 pb-safe-area-inset-bottom">
